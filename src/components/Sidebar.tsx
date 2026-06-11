@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { Task, Priority, Status } from '../types'
 import { PRIORITIES, STATUSES, CATEGORIES } from '../constants'
+import StatusIcon from './StatusIcon'
 import TaskForm from './TaskForm'
 
 interface Props {
@@ -9,6 +10,10 @@ interface Props {
   onSelect: (id: string) => void
   onAdd: (data: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => void
   onDelete: (id: string) => void
+}
+
+const PRIORITY_COLORS: Record<Priority, string> = {
+  urgent: '#ff4444', high: '#f5a623', normal: '#5e6ad2', low: '#8a8a9a',
 }
 
 export default function Sidebar({ tasks, selectedId, onSelect, onAdd, onDelete }: Props) {
@@ -26,88 +31,164 @@ export default function Sidebar({ tasks, selectedId, onSelect, onAdd, onDelete }
     return true
   })
 
-  const priorityColor: Record<Priority, string> = {
-    urgent: 'bg-red-500', high: 'bg-orange-500', normal: 'bg-blue-500', low: 'bg-gray-400'
+  const selStyle: React.CSSProperties = {
+    width: '100%',
+    height: 28,
+    padding: '0 24px 0 8px',
+    borderRadius: 6,
+    fontSize: 11,
+    background: 'transparent',
+    border: '1px solid rgba(255,255,255,0.1)',
+    color: '#e2e2e8',
+    cursor: 'pointer',
+    appearance: 'none',
+    transition: 'border-color 0.1s',
+    boxSizing: 'border-box',
   }
 
-  const statusLabel: Record<Status, string> = {
-    todo: '待办', in_progress: '进行中', done: '完成'
-  }
-
-  const selCls = 'rounded px-2 py-1 text-xs border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:outline-none'
+  const ChevronDown = () => (
+    <svg width="10" height="6" viewBox="0 0 10 6" fill="none" style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+      <path d="M1 1L5 5L9 1" stroke="#8a8a9a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
 
   return (
-    <div className="w-72 shrink-0 h-full flex flex-col border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
-      <div className="p-3 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between mb-2">
-          <span className="font-semibold text-gray-800 dark:text-gray-100 text-sm">任务列表</span>
-          <button onClick={() => setShowForm(true)}
-            className="text-xs bg-blue-600 hover:bg-blue-700 text-white rounded px-2 py-1 transition-colors">
-            + 新建
-          </button>
+    <div style={{
+      width: 220, flexShrink: 0, height: '100%',
+      display: 'flex', flexDirection: 'column',
+      background: '#0a0a0e',
+      borderRight: '1px solid rgba(255,255,255,0.06)',
+    }}>
+      {/* Header */}
+      <div style={{ padding: '10px 12px 8px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+          <span style={{ fontSize: 10, fontWeight: 600, color: '#8a8a9a', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            我的任务
+          </span>
+          <button
+            onClick={() => setShowForm(true)}
+            style={{
+              padding: '3px 8px', borderRadius: 6, fontSize: 11, fontWeight: 500,
+              background: '#5e6ad2', color: '#fff', border: 'none', cursor: 'pointer',
+              transition: 'filter 0.1s',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.filter = 'brightness(1.15)')}
+            onMouseLeave={e => (e.currentTarget.style.filter = 'none')}
+          >+ 新建</button>
         </div>
         <input
-          value={search} onChange={e => setSearch(e.target.value)}
+          value={search}
+          onChange={e => setSearch(e.target.value)}
           placeholder="搜索任务…"
-          className="w-full text-xs rounded border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-2 py-1.5 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          style={{
+            width: '100%', padding: '5px 8px', borderRadius: 6, fontSize: 12,
+            background: 'rgba(255,255,255,0.04)',
+            border: '1px solid rgba(255,255,255,0.06)',
+            color: '#e2e2e8', boxSizing: 'border-box',
+          }}
         />
       </div>
 
-      <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-700 flex flex-wrap gap-1.5">
-        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value as Status | 'all')} className={selCls}>
-          <option value="all">全部状态</option>
-          {STATUSES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
-        </select>
-        <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} className={selCls}>
-          <option value="all">全部分类</option>
-          {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
-        <select value={filterPriority} onChange={e => setFilterPriority(e.target.value as Priority | 'all')} className={selCls}>
-          <option value="all">全部优先级</option>
-          {PRIORITIES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
-        </select>
+      {/* Filters */}
+      <div style={{ padding: '8px 12px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: 5 }}>
+        <span style={{ fontSize: 10, fontWeight: 600, color: '#8a8a9a', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 1 }}>筛选</span>
+        {[
+          { value: filterStatus, onChange: (v: string) => setFilterStatus(v as Status | 'all'), options: [{ value: 'all', label: '全部状态' }, ...STATUSES.map(s => ({ value: s.value, label: s.label }))] },
+          { value: filterCategory, onChange: (v: string) => setFilterCategory(v), options: [{ value: 'all', label: '全部分类' }, ...CATEGORIES.map(c => ({ value: c, label: c }))] },
+          { value: filterPriority, onChange: (v: string) => setFilterPriority(v as Priority | 'all'), options: [{ value: 'all', label: '全部优先级' }, ...PRIORITIES.map(p => ({ value: p.value, label: p.label }))] },
+        ].map((sel, i) => (
+          <div key={i} style={{ position: 'relative' }}>
+            <select
+              value={sel.value}
+              onChange={e => sel.onChange(e.target.value)}
+              style={selStyle}
+              onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)')}
+              onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+            >
+              {sel.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+            <ChevronDown />
+          </div>
+        ))}
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      {/* Task list */}
+      <div style={{ flex: 1, overflowY: 'auto' }}>
         {filtered.length === 0 ? (
-          <div className="text-center text-gray-400 text-sm py-8">暂无任务</div>
+          <div style={{ textAlign: 'center', color: '#8a8a9a', fontSize: 12, padding: '24px 0' }}>暂无任务</div>
         ) : (
-          filtered.map(task => (
-            <div
-              key={task.id}
-              onClick={() => onSelect(task.id)}
-              className={`px-3 py-2.5 cursor-pointer border-b border-gray-100 dark:border-gray-800 flex items-start gap-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${selectedId === task.id ? 'bg-blue-50 dark:bg-blue-950' : ''}`}
-            >
-              <div className="w-2 h-2 rounded-full mt-1.5 shrink-0" style={{ background: task.color }} />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <span className={`${task.status === 'done' ? 'line-through text-gray-400' : 'text-gray-800 dark:text-gray-100'} text-sm font-medium truncate`}>
-                    {task.title}
-                  </span>
+          filtered.map(task => {
+            const isSelected = selectedId === task.id
+            return (
+              <div
+                key={task.id}
+                onClick={() => onSelect(task.id)}
+                style={{
+                  position: 'relative',
+                  padding: '7px 12px 7px 14px',
+                  cursor: 'pointer',
+                  borderBottom: '1px solid rgba(255,255,255,0.04)',
+                  display: 'flex', alignItems: 'flex-start', gap: 8,
+                  background: isSelected ? 'rgba(94,106,210,0.1)' : 'transparent',
+                  transition: 'background 0.1s',
+                  borderLeft: isSelected ? '2px solid #5e6ad2' : '2px solid transparent',
+                }}
+                onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
+                onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = 'transparent' }}
+              >
+                <div style={{ marginTop: 2, flexShrink: 0 }}>
+                  <StatusIcon status={task.status} size={13} />
                 </div>
-                <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className={`w-1.5 h-1.5 rounded-full ${priorityColor[task.priority]}`} />
-                  <span className="text-xs text-gray-400">{statusLabel[task.status]}</span>
-                  {task.deadline && (
-                    <span className={`text-xs ${new Date(task.deadline) < new Date() && task.status !== 'done' ? 'text-red-500' : 'text-gray-400'}`}>
-                      · {task.deadline}
-                    </span>
-                  )}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{
+                    fontSize: 13, fontWeight: 400,
+                    color: task.status === 'done' ? '#8a8a9a' : '#e2e2e8',
+                    textDecoration: task.status === 'done' ? 'line-through' : 'none',
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  }}>{task.title}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2 }}>
+                    <span style={{
+                      width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
+                      background: PRIORITY_COLORS[task.priority],
+                    }} />
+                    <span style={{ fontSize: 11, color: '#8a8a9a' }}>{task.category}</span>
+                    {task.deadline && (
+                      <span style={{
+                        fontSize: 11,
+                        color: new Date(task.deadline) < new Date() && task.status !== 'done' ? '#ff4444' : '#8a8a9a',
+                      }}>· {task.deadline}</span>
+                    )}
+                  </div>
                 </div>
+                <button
+                  onClick={e => { e.stopPropagation(); onDelete(task.id) }}
+                  style={{
+                    background: 'none', border: 'none', color: '#8a8a9a',
+                    cursor: 'pointer', padding: '0 2px', fontSize: 12, lineHeight: 1,
+                    opacity: 0, transition: 'opacity 0.1s',
+                    flexShrink: 0,
+                  }}
+                  className="sidebar-delete-btn"
+                  onMouseEnter={e => { e.currentTarget.style.color = '#ff4444'; e.currentTarget.style.opacity = '1' }}
+                  onMouseLeave={e => { e.currentTarget.style.color = '#8a8a9a' }}
+                >✕</button>
               </div>
-              <button
-                onClick={e => { e.stopPropagation(); onDelete(task.id) }}
-                className="text-gray-300 hover:text-red-500 text-xs shrink-0 transition-colors"
-              >✕</button>
-            </div>
-          ))
+            )
+          })
         )}
       </div>
 
+      {/* New task modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowForm(false)}>
-          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl p-5 w-96 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <h2 className="font-semibold text-gray-800 dark:text-gray-100 mb-4">新建任务</h2>
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 }}
+          onClick={() => setShowForm(false)}
+        >
+          <div
+            style={{ background: '#1a1a24', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, padding: 20, width: 400, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 24px 48px rgba(0,0,0,0.5)' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ fontSize: 14, fontWeight: 600, color: '#e2e2e8', marginBottom: 16 }}>新建任务</div>
             <TaskForm onSubmit={data => { onAdd(data); setShowForm(false) }} onCancel={() => setShowForm(false)} />
           </div>
         </div>

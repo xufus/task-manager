@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import type { Task } from '../types'
-import { PRIORITIES, STATUSES } from '../constants'
+import { STATUSES } from '../constants'
 import TaskForm from './TaskForm'
+import StatusIcon from './StatusIcon'
 
 interface Props {
   task: Task | null
@@ -10,105 +11,159 @@ interface Props {
   onClose: () => void
 }
 
+const PRIORITY_COLORS: Record<string, string> = {
+  urgent: '#ff4444', high: '#f5a623', normal: '#5e6ad2', low: '#8a8a9a',
+}
+const PRIORITY_LABELS: Record<string, string> = {
+  urgent: '紧急', high: '高', normal: '普通', low: '低',
+}
+
 export default function TaskDetail({ task, onUpdate, onDelete, onClose }: Props) {
   const [editing, setEditing] = useState(false)
 
   if (!task) {
     return (
-      <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#8a8a9a', fontSize: 13 }}>
         选择一个任务查看详情
       </div>
     )
   }
 
-  const priority = PRIORITIES.find(p => p.value === task.priority)
   const isOverdue = task.deadline && new Date(task.deadline) < new Date() && task.status !== 'done'
+
+  const metaBlock: React.CSSProperties = {
+    padding: '8px 10px', borderRadius: 6,
+    background: 'rgba(255,255,255,0.03)',
+    border: '1px solid rgba(255,255,255,0.06)',
+  }
+  const metaLabel: React.CSSProperties = {
+    fontSize: 10, color: '#8a8a9a', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4,
+  }
 
   if (editing) {
     return (
-      <div className="flex-1 p-5 overflow-y-auto">
-        <div className="max-w-lg">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-gray-800 dark:text-gray-100">编辑任务</h2>
-            <button onClick={() => setEditing(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-sm">取消</button>
+      <div style={{ flex: 1, padding: 20, overflowY: 'auto' }}>
+        <div style={{ maxWidth: 480 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+            <span style={{ fontSize: 14, fontWeight: 600, color: '#e2e2e8' }}>编辑任务</span>
+            <button onClick={() => setEditing(false)} style={{ background: 'none', border: 'none', color: '#8a8a9a', cursor: 'pointer', fontSize: 12 }}>取消</button>
           </div>
-          <TaskForm
-            initial={task}
-            onSubmit={data => { onUpdate(task.id, data); setEditing(false) }}
-            onCancel={() => setEditing(false)}
-          />
+          <TaskForm initial={task} onSubmit={data => { onUpdate(task.id, data); setEditing(false) }} onCancel={() => setEditing(false)} />
         </div>
       </div>
     )
   }
 
   return (
-    <div className="flex-1 p-5 overflow-y-auto">
-      <div className="max-w-lg">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-start gap-2">
-            <div className="w-3 h-3 rounded-full mt-1.5 shrink-0" style={{ background: task.color }} />
-            <h2 className={`font-semibold text-lg ${task.status === 'done' ? 'line-through text-gray-400' : 'text-gray-800 dark:text-gray-100'}`}>
-              {task.title}
-            </h2>
+    <div style={{ flex: 1, padding: 20, overflowY: 'auto' }}>
+      <div style={{ maxWidth: 480 }}>
+        {/* Title row */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 9 }}>
+            <div style={{ marginTop: 3 }}>
+              <StatusIcon status={task.status} size={16} />
+            </div>
+            <h2 style={{
+              margin: 0, fontSize: 16, fontWeight: 600, lineHeight: 1.4,
+              color: task.status === 'done' ? '#8a8a9a' : '#e2e2e8',
+              textDecoration: task.status === 'done' ? 'line-through' : 'none',
+            }}>{task.title}</h2>
           </div>
-          <div className="flex gap-2 shrink-0">
-            <button onClick={() => setEditing(true)} className="text-xs text-blue-500 hover:text-blue-700 px-2 py-1 border border-blue-200 rounded transition-colors">编辑</button>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-sm px-2">✕</button>
+          <div style={{ display: 'flex', gap: 6, flexShrink: 0, marginLeft: 12 }}>
+            <button
+              onClick={() => setEditing(true)}
+              style={{
+                padding: '4px 10px', borderRadius: 6, fontSize: 12, cursor: 'pointer',
+                background: 'rgba(94,106,210,0.1)', border: '1px solid rgba(94,106,210,0.25)',
+                color: '#5e6ad2', transition: 'filter 0.1s',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.filter = 'brightness(1.2)')}
+              onMouseLeave={e => (e.currentTarget.style.filter = 'none')}
+            >编辑</button>
+            <button
+              onClick={onClose}
+              style={{ background: 'none', border: 'none', color: '#8a8a9a', cursor: 'pointer', fontSize: 14, padding: '4px 6px' }}
+            >✕</button>
           </div>
         </div>
 
         {task.description && (
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 whitespace-pre-wrap">{task.description}</p>
+          <p style={{ margin: '0 0 16px', fontSize: 13, color: '#8a8a9a', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
+            {task.description}
+          </p>
         )}
 
-        <div className="grid grid-cols-2 gap-3 mb-4">
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
-            <div className="text-xs text-gray-400 mb-1">状态</div>
+        {/* Meta grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
+          <div style={metaBlock}>
+            <div style={metaLabel}>状态</div>
             <select
               value={task.status}
               onChange={e => onUpdate(task.id, { status: e.target.value as Task['status'] })}
-              className="text-sm font-medium text-gray-800 dark:text-gray-100 bg-transparent focus:outline-none w-full"
+              style={{ width: '100%', background: 'transparent', border: 'none', fontSize: 13, fontWeight: 500, color: '#e2e2e8', cursor: 'pointer', padding: 0 }}
             >
               {STATUSES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
             </select>
           </div>
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
-            <div className="text-xs text-gray-400 mb-1">优先级</div>
-            <div className="flex items-center gap-1.5">
-              <span className={`w-2 h-2 rounded-full ${priority?.color}`} />
-              <span className="text-sm font-medium text-gray-800 dark:text-gray-100">{priority?.label}</span>
+
+          <div style={metaBlock}>
+            <div style={metaLabel}>优先级</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: PRIORITY_COLORS[task.priority], flexShrink: 0 }} />
+              <span style={{ fontSize: 13, fontWeight: 500, color: PRIORITY_COLORS[task.priority] }}>
+                {PRIORITY_LABELS[task.priority]}
+              </span>
             </div>
           </div>
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
-            <div className="text-xs text-gray-400 mb-1">分类</div>
-            <div className="text-sm font-medium text-gray-800 dark:text-gray-100">{task.category}</div>
+
+          <div style={metaBlock}>
+            <div style={metaLabel}>分类</div>
+            <div style={{ fontSize: 13, fontWeight: 500, color: '#e2e2e8' }}>{task.category}</div>
           </div>
+
           {task.deadline && (
-            <div className={`rounded-lg p-3 ${isOverdue ? 'bg-red-50 dark:bg-red-950/30' : 'bg-gray-50 dark:bg-gray-800'}`}>
-              <div className="text-xs text-gray-400 mb-1">截止日期</div>
-              <div className={`text-sm font-medium ${isOverdue ? 'text-red-600 dark:text-red-400' : 'text-gray-800 dark:text-gray-100'}`}>
-                {task.deadline} {isOverdue && '(已逾期)'}
+            <div style={{
+              ...metaBlock,
+              background: isOverdue ? 'rgba(255,68,68,0.08)' : 'rgba(255,255,255,0.03)',
+              border: `1px solid ${isOverdue ? 'rgba(255,68,68,0.2)' : 'rgba(255,255,255,0.06)'}`,
+            }}>
+              <div style={metaLabel}>截止日期</div>
+              <div style={{ fontSize: 13, fontWeight: 500, color: isOverdue ? '#ff4444' : '#e2e2e8' }}>
+                {task.deadline}{isOverdue ? ' · 逾期' : ''}
               </div>
             </div>
           )}
         </div>
 
-        <div className="flex gap-2">
+        {/* Action buttons */}
+        <div style={{ display: 'flex', gap: 8 }}>
           <button
             onClick={() => onUpdate(task.id, { status: task.status === 'done' ? 'todo' : 'done' })}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${task.status === 'done' ? 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700' : 'bg-green-600 hover:bg-green-700 text-white'}`}
-          >
-            {task.status === 'done' ? '重新打开' : '标记完成'}
-          </button>
-          <button onClick={() => onDelete(task.id)} className="px-4 py-2 bg-red-50 dark:bg-red-950/30 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 rounded-lg text-sm transition-colors">
-            删除
-          </button>
+            style={{
+              flex: 1, padding: '7px 0', borderRadius: 6, fontSize: 13, fontWeight: 500, cursor: 'pointer',
+              background: task.status === 'done' ? 'rgba(255,255,255,0.05)' : 'rgba(0,200,83,0.12)',
+              border: `1px solid ${task.status === 'done' ? 'rgba(255,255,255,0.1)' : 'rgba(0,200,83,0.25)'}`,
+              color: task.status === 'done' ? '#8a8a9a' : '#00c853',
+              transition: 'filter 0.1s',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.filter = 'brightness(1.2)')}
+            onMouseLeave={e => (e.currentTarget.style.filter = 'none')}
+          >{task.status === 'done' ? '重新打开' : '标记完成'}</button>
+          <button
+            onClick={() => onDelete(task.id)}
+            style={{
+              padding: '7px 16px', borderRadius: 6, fontSize: 13, cursor: 'pointer',
+              background: 'rgba(255,68,68,0.08)', border: '1px solid rgba(255,68,68,0.18)',
+              color: '#ff4444', transition: 'filter 0.1s',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.filter = 'brightness(1.2)')}
+            onMouseLeave={e => (e.currentTarget.style.filter = 'none')}
+          >删除</button>
         </div>
 
-        <div className="mt-4 text-xs text-gray-400 space-y-1">
-          <div>创建于 {new Date(task.createdAt).toLocaleString('zh-CN')}</div>
-          <div>更新于 {new Date(task.updatedAt).toLocaleString('zh-CN')}</div>
+        <div style={{ marginTop: 16, fontSize: 11, color: '#8a8a9a', display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <span>创建于 {new Date(task.createdAt).toLocaleString('zh-CN')}</span>
+          <span>更新于 {new Date(task.updatedAt).toLocaleString('zh-CN')}</span>
         </div>
       </div>
     </div>

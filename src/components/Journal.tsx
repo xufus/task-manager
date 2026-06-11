@@ -42,33 +42,52 @@ export default function Journal({ entries, tasks, activeTaskId, onAdd }: Props) 
   }
 
   return (
-    <div className="w-72 shrink-0 h-full flex flex-col border-l border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
-      <div className="px-3 py-2.5 border-b border-gray-200 dark:border-gray-700">
-        <div className="font-semibold text-sm text-gray-800 dark:text-gray-100">工作日志</div>
-        <div className="text-xs text-gray-400 mt-0.5">
-          {activeTask
-            ? <span className="text-blue-500 font-medium truncate block">📌 {activeTask.title}</span>
-            : '今日记录'}
+    <div style={{
+      width: 240, flexShrink: 0, height: '100%',
+      display: 'flex', flexDirection: 'column',
+      borderLeft: '1px solid rgba(255,255,255,0.06)',
+      background: '#0a0a0e',
+    }}>
+      {/* Header */}
+      <div style={{ padding: '10px 12px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        <div style={{ fontSize: 10, fontWeight: 600, color: '#8a8a9a', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 2 }}>
+          工作日志
+        </div>
+        <div style={{ fontSize: 11, color: activeTask ? '#5e6ad2' : '#8a8a9a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {activeTask ? `📌 ${activeTask.title}` : '今日记录'}
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-3 space-y-2.5">
+      {/* Entries */}
+      <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
         {displayed.length === 0 ? (
-          <div className="text-center text-gray-400 text-sm py-6">
-            {activeTask ? '该任务暂无日志' : '今天还没有日志记录'}
+          <div style={{ textAlign: 'center', color: '#8a8a9a', fontSize: 12, padding: '24px 0' }}>
+            {activeTask ? '该任务暂无日志' : '今天还没有记录'}
           </div>
         ) : (
-          displayed.map(entry => {
+          displayed.map((entry, idx) => {
             const taskTitle = !activeTaskId ? getTaskTitle(entry.taskId) : null
             return (
-              <div key={entry.id} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-2.5">
+              <div key={entry.id} style={{
+                padding: '10px 12px',
+                borderBottom: idx < displayed.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+              }}>
                 {taskTitle && (
-                  <div className="text-xs text-blue-500 mb-1 font-medium truncate">{taskTitle}</div>
+                  <span style={{
+                    display: 'inline-block', fontSize: 11, fontWeight: 500,
+                    color: '#5e6ad2', background: 'rgba(94,106,210,0.15)',
+                    padding: '2px 6px', borderRadius: 4, marginBottom: 6,
+                    maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  }}>
+                    {taskTitle}
+                  </span>
                 )}
-                <div className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
+                <div style={{ fontSize: 12, color: '#e2e2e8', whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
                   {entry.content}
                 </div>
-                <div className="text-xs text-gray-400 mt-1.5 text-right">{formatDateTime(entry.createdAt)}</div>
+                <div style={{ fontSize: 11, color: '#666680', marginTop: 5, textAlign: 'right' }}>
+                  {formatDateTime(entry.createdAt)}
+                </div>
               </div>
             )
           })
@@ -76,9 +95,12 @@ export default function Journal({ entries, tasks, activeTaskId, onAdd }: Props) 
         <div ref={bottomRef} />
       </div>
 
-      <form onSubmit={handleSubmit} className="p-3 border-t border-gray-200 dark:border-gray-700">
+      {/* Input */}
+      <div style={{ padding: '10px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
         {activeTask && (
-          <div className="text-xs text-blue-500 mb-1.5 truncate">关联到: {activeTask.title}</div>
+          <div style={{ fontSize: 11, color: '#5e6ad2', marginBottom: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            关联到: {activeTask.title}
+          </div>
         )}
         <textarea
           value={input}
@@ -86,12 +108,26 @@ export default function Journal({ entries, tasks, activeTaskId, onAdd }: Props) 
           onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(e) } }}
           placeholder={activeTask ? `记录「${activeTask.title}」的进展…` : '记录工作进展… (Enter 提交)'}
           rows={3}
-          className="w-full text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-3 py-2 text-gray-700 dark:text-gray-300 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+          style={{
+            width: '100%', borderRadius: 6, padding: '7px 9px', fontSize: 12,
+            background: 'rgba(255,255,255,0.04)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            color: '#e2e2e8', resize: 'none', lineHeight: 1.5, boxSizing: 'border-box',
+          }}
         />
-        <button type="submit" className="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-1.5 text-sm transition-colors">
-          记录
-        </button>
-      </form>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 6 }}>
+          <button
+            onClick={handleSubmit}
+            style={{
+              padding: '5px 16px', borderRadius: 6, fontSize: 12,
+              fontWeight: 500, background: '#5e6ad2', color: '#fff', border: 'none',
+              cursor: 'pointer', transition: 'filter 0.1s',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.filter = 'brightness(1.15)')}
+            onMouseLeave={e => (e.currentTarget.style.filter = 'none')}
+          >记录</button>
+        </div>
+      </div>
     </div>
   )
 }

@@ -1,12 +1,37 @@
 @import "tailwindcss";
 
-*, *::before, *::after {
-  box-sizing: border-box;
+*, *::before, *::after { box-sizing: border-box; }
+
+:root {
+  --lin-bg:        #0f0f13;
+  --lin-sidebar:   #0a0a0e;
+  --lin-card:      #1a1a24;
+  --lin-accent:    #5e6ad2;
+  --lin-primary:   #e2e2e8;
+  --lin-secondary: #8a8a9a;
+  --lin-border:    rgba(255,255,255,0.06);
+  --lin-hover:     rgba(255,255,255,0.04);
+  --lin-active:    rgba(94,106,210,0.12);
+
+  --pri-urgent: #ff4444;
+  --pri-high:   #f5a623;
+  --pri-normal: #5e6ad2;
+  --pri-low:    #8a8a9a;
+
+  --st-todo:     #8a8a9a;
+  --st-progress: #5e6ad2;
+  --st-done:     #00c853;
 }
 
 body {
   margin: 0;
-  font-family: system-ui, 'Segoe UI', sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  background: var(--lin-bg);
+  color: var(--lin-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
@@ -15,18 +40,33 @@ body {
   overflow: hidden;
 }
 
-.dark {
-  color-scheme: dark;
+::selection {
+  background: rgba(94,106,210,0.35);
 }
 
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
+
+/* Base input/select/textarea reset for dark theme */
+input, textarea, select {
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--lin-primary);
   background: transparent;
+  border: 1px solid var(--lin-border);
+  border-radius: 6px;
+  outline: none;
+  transition: border-color 0.1s;
 }
-::-webkit-scrollbar-thumb {
-  background: rgba(128,128,128,0.4);
-  border-radius: 3px;
+input:focus, textarea:focus, select:focus {
+  border-color: var(--lin-accent);
+}
+input::placeholder, textarea::placeholder {
+  color: var(--lin-secondary);
+}
+select option {
+  background: #1a1a24;
+  color: var(--lin-primary);
 }

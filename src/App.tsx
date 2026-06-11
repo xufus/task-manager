@@ -21,30 +21,15 @@ export default function App() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const root = document.documentElement
-    const { theme } = store.settings
-    if (theme === 'dark') {
-      root.classList.add('dark')
-    } else if (theme === 'light') {
-      root.classList.remove('dark')
-    } else {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      root.classList.toggle('dark', prefersDark)
-    }
-  }, [store.settings.theme])
-
-  useEffect(() => {
     if (!('Notification' in window)) return
     if (Notification.permission === 'default') Notification.requestPermission()
-
     if (Notification.permission !== 'granted') return
     const soon = new Date(Date.now() + 24 * 60 * 60 * 1000)
     store.tasks.forEach(t => {
       if (t.status === 'done' || !t.deadline) return
       const dl = new Date(t.deadline)
-      if (dl <= soon && dl >= new Date()) {
+      if (dl <= soon && dl >= new Date())
         new Notification('任务即将到期', { body: `"${t.title}" 将于明天截止` })
-      }
     })
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -59,58 +44,50 @@ export default function App() {
   }
 
   async function handleGenerateSummary() {
-    if (!store.settings.apiKey) {
-      setError('请先在设置中填入 Claude API Key')
-      return
-    }
+    if (!store.settings.apiKey) { setError('请先在设置中填入 Claude API Key'); return }
     setGenerating(true)
     try {
       const content = await generateDailySummary(store.settings.apiKey, store.tasks, store.journalEntries)
       const today = new Date().toLocaleDateString('zh-CN')
       store.addDailySummary({ date: today, content })
       setSummary({ title: `${today} 工作日报`, content })
-    } catch (e) {
-      setError(`生成失败: ${(e as Error).message}`)
-    } finally {
-      setGenerating(false)
-    }
+    } catch (e) { setError(`生成失败: ${(e as Error).message}`) }
+    finally { setGenerating(false) }
   }
 
   async function handleGenerateWeekly() {
-    if (!store.settings.apiKey) {
-      setError('请先在设置中填入 Claude API Key')
-      return
-    }
+    if (!store.settings.apiKey) { setError('请先在设置中填入 Claude API Key'); return }
     setGenerating(true)
     try {
       const content = await generateWeeklyReport(store.settings.apiKey, store.tasks, store.journalEntries)
       const now = new Date()
       const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-      store.addWeeklySummary({
-        weekStart: weekAgo.toLocaleDateString('zh-CN'),
-        weekEnd: now.toLocaleDateString('zh-CN'),
-        content,
-      })
+      store.addWeeklySummary({ weekStart: weekAgo.toLocaleDateString('zh-CN'), weekEnd: now.toLocaleDateString('zh-CN'), content })
       setSummary({ title: '本周工作周报', content })
-    } catch (e) {
-      setError(`生成失败: ${(e as Error).message}`)
-    } finally {
-      setGenerating(false)
-    }
+    } catch (e) { setError(`生成失败: ${(e as Error).message}`) }
+    finally { setGenerating(false) }
   }
 
   const selectedTask = store.tasks.find(t => t.id === selectedTaskId) ?? null
 
+  const tabBtn = (active: boolean): React.CSSProperties => ({
+    padding: '4px 10px', borderRadius: 6, fontSize: 12, fontWeight: active ? 500 : 400,
+    cursor: 'pointer', border: 'none', transition: 'all 0.1s',
+    background: active ? 'rgba(94,106,210,0.15)' : 'transparent',
+    color: active ? '#5e6ad2' : '#8a8a9a',
+  })
+
   return (
-    <div className="h-screen w-screen flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
+    <div style={{ height: '100vh', width: '100vw', display: 'flex', flexDirection: 'column', background: '#0f0f13', color: '#e2e2e8', overflow: 'hidden' }}>
       <StatsBar
         tasks={store.tasks}
         onGenerateSummary={handleGenerateSummary}
         onGenerateWeekly={handleGenerateWeekly}
         generating={generating}
+        onOpenSettings={() => setShowSettings(true)}
       />
 
-      <div className="flex-1 flex overflow-hidden">
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
         <Sidebar
           tasks={store.tasks}
           selectedId={selectedTaskId}
@@ -119,27 +96,20 @@ export default function App() {
           onDelete={id => { store.deleteTask(id); if (selectedTaskId === id) closeDetail() }}
         />
 
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <div className="flex items-center gap-2 px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
-            <button
-              onClick={() => setMainView('kanban')}
-              className={`text-sm px-3 py-1 rounded-lg transition-colors ${mainView === 'kanban' ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-medium' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
-            >看板</button>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          {/* View tab bar */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 4, padding: '6px 12px',
+            borderBottom: '1px solid rgba(255,255,255,0.06)',
+            background: '#0f0f13',
+          }}>
+            <button onClick={() => setMainView('kanban')} style={tabBtn(mainView === 'kanban')}>看板</button>
             {selectedTask && (
-              <button
-                onClick={() => setMainView('detail')}
-                className={`text-sm px-3 py-1 rounded-lg transition-colors ${mainView === 'detail' ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-medium' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
-              >详情</button>
+              <button onClick={() => setMainView('detail')} style={tabBtn(mainView === 'detail')}>详情</button>
             )}
-            <div className="ml-auto">
-              <button
-                onClick={() => setShowSettings(true)}
-                className="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 px-2 py-1 rounded transition-colors"
-              >⚙ 设置</button>
-            </div>
           </div>
 
-          <div className="flex-1 overflow-hidden p-4">
+          <div style={{ flex: 1, overflow: 'hidden', padding: 12 }}>
             {mainView === 'kanban' ? (
               <KanbanBoard
                 tasks={store.tasks}
@@ -176,9 +146,15 @@ export default function App() {
       )}
 
       {error && (
-        <div className="fixed bottom-4 right-4 bg-red-600 text-white text-sm rounded-lg px-4 py-3 shadow-lg flex items-center gap-3 z-50">
+        <div style={{
+          position: 'fixed', bottom: 16, right: 16, zIndex: 60,
+          background: 'rgba(255,68,68,0.15)', border: '1px solid rgba(255,68,68,0.3)',
+          borderRadius: 6, padding: '10px 14px', fontSize: 13, color: '#ff4444',
+          display: 'flex', alignItems: 'center', gap: 10,
+          boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+        }}>
           <span>{error}</span>
-          <button onClick={() => setError(null)} className="opacity-70 hover:opacity-100">✕</button>
+          <button onClick={() => setError(null)} style={{ background: 'none', border: 'none', color: '#ff4444', cursor: 'pointer', opacity: 0.7, fontSize: 13 }}>✕</button>
         </div>
       )}
     </div>

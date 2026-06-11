@@ -5,49 +5,91 @@ interface Props {
   onGenerateSummary: () => void
   onGenerateWeekly: () => void
   generating: boolean
+  onOpenSettings: () => void
 }
 
-export default function StatsBar({ tasks, onGenerateSummary, onGenerateWeekly, generating }: Props) {
+export default function StatsBar({ tasks, onGenerateSummary, onGenerateWeekly, generating, onOpenSettings }: Props) {
   const total = tasks.length
   const done = tasks.filter(t => t.status === 'done').length
   const inProgress = tasks.filter(t => t.status === 'in_progress').length
   const overdue = tasks.filter(t => t.deadline && new Date(t.deadline) < new Date() && t.status !== 'done').length
-  const rate = total > 0 ? Math.round((done / total) * 100) : 0
+
+  const btnBase: React.CSSProperties = {
+    padding: '5px 10px',
+    borderRadius: 6,
+    fontSize: 12,
+    fontWeight: 500,
+    cursor: 'pointer',
+    transition: 'filter 0.1s',
+    border: '1px solid rgba(255,255,255,0.1)',
+    background: 'rgba(255,255,255,0.05)',
+    color: '#8a8a9a',
+  }
 
   return (
-    <div className="h-12 shrink-0 flex items-center gap-4 px-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
-      <div className="text-sm font-semibold text-gray-800 dark:text-gray-100">任务管理</div>
+    <div style={{
+      height: 44,
+      flexShrink: 0,
+      display: 'flex',
+      alignItems: 'center',
+      gap: 16,
+      padding: '0 16px',
+      borderBottom: '1px solid rgba(255,255,255,0.06)',
+      background: '#0a0a0e',
+    }}>
+      <span style={{ fontWeight: 600, fontSize: 14, color: '#e2e2e8', letterSpacing: '-0.01em' }}>
+        Tasks
+      </span>
 
-      <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
-        <span>共 <strong className="text-gray-800 dark:text-gray-100">{total}</strong> 个任务</span>
-        <span>进行中 <strong className="text-blue-600">{inProgress}</strong></span>
-        <span>已完成 <strong className="text-green-600">{done}</strong></span>
-        {overdue > 0 && <span className="text-red-500 font-medium">逾期 {overdue}</span>}
+      <div style={{ width: '1px', height: 16, background: 'rgba(255,255,255,0.08)' }} />
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 12, color: '#8a8a9a' }}>
+        <span><span style={{ color: '#e2e2e8', fontWeight: 500 }}>{total}</span> 个任务</span>
+        <span style={{ color: '#5e6ad2', fontWeight: 500 }}>{inProgress} 进行中</span>
+        <span style={{ color: '#00c853', fontWeight: 500 }}>{done} 已完成</span>
+        {overdue > 0 && <span style={{ color: '#ff4444', fontWeight: 500 }}>{overdue} 逾期</span>}
       </div>
 
       {total > 0 && (
-        <div className="flex items-center gap-2">
-          <div className="w-24 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-            <div className="h-full bg-green-500 rounded-full transition-all" style={{ width: `${rate}%` }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{
+            width: 80, height: 3, borderRadius: 2,
+            background: 'rgba(255,255,255,0.1)', overflow: 'hidden',
+          }}>
+            <div style={{
+              height: '100%', borderRadius: 2, background: '#5e6ad2',
+              width: `${Math.round((done / total) * 100)}%`,
+              transition: 'width 0.3s',
+            }} />
           </div>
-          <span className="text-xs text-gray-500">{rate}%</span>
+          <span style={{ fontSize: 11, color: '#8a8a9a' }}>{Math.round((done / total) * 100)}%</span>
         </div>
       )}
 
-      <div className="ml-auto flex gap-2">
+      <div style={{ marginLeft: 'auto', display: 'flex', gap: 6, alignItems: 'center' }}>
         <button
-          onClick={onGenerateSummary}
-          disabled={generating}
-          className="text-xs bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white rounded-lg px-3 py-1.5 transition-colors"
-        >
-          {generating ? '生成中…' : 'AI 日报'}
-        </button>
+          onClick={onGenerateSummary} disabled={generating}
+          style={{ ...btnBase, color: generating ? '#8a8a9a' : '#c4b5fd' }}
+          onMouseEnter={e => (e.currentTarget.style.filter = 'brightness(1.2)')}
+          onMouseLeave={e => (e.currentTarget.style.filter = 'none')}
+        >{generating ? '生成中…' : 'AI 日报'}</button>
         <button
-          onClick={onGenerateWeekly}
-          disabled={generating}
-          className="text-xs bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg px-3 py-1.5 transition-colors"
+          onClick={onGenerateWeekly} disabled={generating}
+          style={{ ...btnBase, color: generating ? '#8a8a9a' : '#93c5fd' }}
+          onMouseEnter={e => (e.currentTarget.style.filter = 'brightness(1.2)')}
+          onMouseLeave={e => (e.currentTarget.style.filter = 'none')}
+        >{generating ? '生成中…' : 'AI 周报'}</button>
+        <button
+          onClick={onOpenSettings}
+          style={{ ...btnBase }}
+          onMouseEnter={e => (e.currentTarget.style.filter = 'brightness(1.3)')}
+          onMouseLeave={e => (e.currentTarget.style.filter = 'none')}
+          title="设置"
         >
-          {generating ? '生成中…' : 'AI 周报'}
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#8a8a9a" strokeWidth="1.5" strokeLinecap="round">
+            <circle cx="8" cy="8" r="2.5"/>
+            <path d="M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3.05 3.05l1.06 1.06M11.89 11.89l1.06 1.06M3.05 12.95l1.06-1.06M11.89 4.11l1.06-1.06"/>
+          </svg>
         </button>
       </div>
     </div>

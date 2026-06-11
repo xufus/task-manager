@@ -8,6 +8,10 @@ interface Props {
   onCancel: () => void
 }
 
+const PRIORITY_COLORS: Record<Priority, string> = {
+  urgent: '#ff4444', high: '#f5a623', normal: '#5e6ad2', low: '#8a8a9a',
+}
+
 export default function TaskForm({ initial, onSubmit, onCancel }: Props) {
   const [title, setTitle] = useState(initial?.title ?? '')
   const [description, setDescription] = useState(initial?.description ?? '')
@@ -23,66 +27,105 @@ export default function TaskForm({ initial, onSubmit, onCancel }: Props) {
     onSubmit({ title: title.trim(), description, category, color, priority, status, deadline: deadline || null })
   }
 
-  const inputCls = 'w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500'
+  const label: React.CSSProperties = { fontSize: 11, fontWeight: 500, color: '#8a8a9a', display: 'block', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }
+  const inputStyle: React.CSSProperties = { width: '100%', padding: '6px 10px', borderRadius: 6, fontSize: 13, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', color: '#e2e2e8', boxSizing: 'border-box' }
+  const selectStyle: React.CSSProperties = { ...inputStyle, cursor: 'pointer', appearance: 'none' }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <div>
-        <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">标题 *</label>
-        <input className={inputCls} value={title} onChange={e => setTitle(e.target.value)} placeholder="任务标题" autoFocus />
+        <label style={label}>标题</label>
+        <input style={inputStyle} value={title} onChange={e => setTitle(e.target.value)} placeholder="任务标题" autoFocus />
       </div>
 
       <div>
-        <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">描述</label>
-        <textarea className={inputCls + ' resize-none'} rows={3} value={description} onChange={e => setDescription(e.target.value)} placeholder="任务描述（可选）" />
+        <label style={label}>描述</label>
+        <textarea
+          style={{ ...inputStyle, resize: 'none' as const, lineHeight: 1.5 }}
+          rows={3} value={description}
+          onChange={e => setDescription(e.target.value)}
+          placeholder="任务描述（可选）"
+        />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
         <div>
-          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">分类</label>
-          <select className={inputCls} value={category} onChange={e => setCategory(e.target.value)}>
+          <label style={label}>分类</label>
+          <select style={selectStyle} value={category} onChange={e => setCategory(e.target.value)}>
             {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">优先级</label>
-          <select className={inputCls} value={priority} onChange={e => setPriority(e.target.value as Priority)}>
+          <label style={label}>优先级</label>
+          <select style={selectStyle} value={priority} onChange={e => setPriority(e.target.value as Priority)}>
             {PRIORITIES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
           </select>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
         <div>
-          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">状态</label>
-          <select className={inputCls} value={status} onChange={e => setStatus(e.target.value as Status)}>
+          <label style={label}>状态</label>
+          <select style={selectStyle} value={status} onChange={e => setStatus(e.target.value as Status)}>
             {STATUSES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
           </select>
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">截止日期</label>
-          <input type="date" className={inputCls} value={deadline} onChange={e => setDeadline(e.target.value)} />
+          <label style={label}>截止日期</label>
+          <input type="date" style={inputStyle} value={deadline} onChange={e => setDeadline(e.target.value)}
+            onFocus={e => e.currentTarget.style.colorScheme = 'dark'}
+          />
         </div>
       </div>
 
       <div>
-        <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">颜色标签</label>
-        <div className="flex gap-2 flex-wrap">
-          {COLORS.map(c => (
+        <label style={label}>优先级颜色</label>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {Object.entries(PRIORITY_COLORS).map(([key, c]) => (
+            <button key={key} type="button" onClick={() => setColor(c)}
+              style={{
+                width: 22, height: 22, borderRadius: '50%', background: c, border: 'none', cursor: 'pointer',
+                outline: color === c ? `2px solid ${c}` : 'none',
+                outlineOffset: 2,
+                transform: color === c ? 'scale(1.2)' : 'scale(1)',
+                transition: 'transform 0.1s',
+              }} />
+          ))}
+          {COLORS.filter(c => !Object.values(PRIORITY_COLORS).includes(c)).map(c => (
             <button key={c} type="button" onClick={() => setColor(c)}
-              className={`w-6 h-6 rounded-full transition-transform ${color === c ? 'ring-2 ring-offset-2 ring-gray-400 scale-125' : ''}`}
-              style={{ background: c }} />
+              style={{
+                width: 22, height: 22, borderRadius: '50%', background: c, border: 'none', cursor: 'pointer',
+                outline: color === c ? `2px solid ${c}` : 'none',
+                outlineOffset: 2,
+                transform: color === c ? 'scale(1.2)' : 'scale(1)',
+                transition: 'transform 0.1s',
+              }} />
           ))}
         </div>
       </div>
 
-      <div className="flex gap-2 pt-2">
-        <button type="submit" className="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2 text-sm font-medium transition-colors">
-          {initial ? '保存' : '创建'}
-        </button>
-        <button type="button" onClick={onCancel} className="flex-1 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg py-2 text-sm transition-colors text-gray-700 dark:text-gray-300">
-          取消
-        </button>
+      <div style={{ display: 'flex', gap: 8, paddingTop: 4 }}>
+        <button
+          type="submit"
+          style={{
+            flex: 1, padding: '7px 0', borderRadius: 6, fontSize: 13, fontWeight: 500,
+            background: '#5e6ad2', color: '#fff', border: 'none', cursor: 'pointer',
+            transition: 'filter 0.1s',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.filter = 'brightness(1.15)')}
+          onMouseLeave={e => (e.currentTarget.style.filter = 'none')}
+        >{initial ? '保存' : '创建'}</button>
+        <button
+          type="button" onClick={onCancel}
+          style={{
+            flex: 1, padding: '7px 0', borderRadius: 6, fontSize: 13,
+            background: 'rgba(255,255,255,0.05)', color: '#8a8a9a',
+            border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer',
+            transition: 'filter 0.1s',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.filter = 'brightness(1.2)')}
+          onMouseLeave={e => (e.currentTarget.style.filter = 'none')}
+        >取消</button>
       </div>
     </form>
   )

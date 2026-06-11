@@ -6,14 +6,24 @@ interface Props {
 
 export default function SummaryModal({ title, content, onClose }: Props) {
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-5 py-3 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="font-semibold text-gray-800 dark:text-gray-100">{title}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">✕</button>
+    <div
+      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: 16 }}
+      onClick={onClose}
+    >
+      <div
+        style={{
+          background: '#1a1a24', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6,
+          maxWidth: 600, width: '100%', maxHeight: '80vh', display: 'flex', flexDirection: 'column',
+          boxShadow: '0 24px 64px rgba(0,0,0,0.6)',
+        }}
+        onClick={e => e.stopPropagation()}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          <span style={{ fontSize: 14, fontWeight: 600, color: '#e2e2e8' }}>{title}</span>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#8a8a9a', cursor: 'pointer', fontSize: 14 }}>✕</button>
         </div>
-        <div className="flex-1 overflow-y-auto p-5">
-          <div className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">{content}</div>
+        <div style={{ flex: 1, overflowY: 'auto', padding: 18 }}>
+          <p style={{ margin: 0, fontSize: 13, color: '#e2e2e8', whiteSpace: 'pre-wrap', lineHeight: 1.8 }}>{content}</p>
         </div>
       </div>
     </div>
