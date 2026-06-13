@@ -149,7 +149,6 @@ export default function App() {
               <TaskDetail
                 task={selectedTask}
                 categories={store.categories}
-                onAddCategory={store.addCategory}
                 onUpdate={store.updateTask}
                 onDelete={id => { store.deleteTask(id); closeDetail() }}
                 onClose={closeDetail}

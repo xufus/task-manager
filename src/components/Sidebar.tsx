@@ -347,7 +347,7 @@ export default function Sidebar({ tasks, categories, onAddCategory, onDeleteCate
             onClick={e => e.stopPropagation()}
           >
             <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', marginBottom: 16 }}>新建任务</div>
-            <TaskForm categories={categories} onAddCategory={onAddCategory} onSubmit={data => { onAdd(data); setShowForm(false) }} onCancel={() => setShowForm(false)} />
+            <TaskForm categories={categories} onSubmit={data => { onAdd(data); setShowForm(false) }} onCancel={() => setShowForm(false)} />
           </div>
         </div>
       )}
