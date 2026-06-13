@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import type { Task, Priority, Status } from '../types'
-import { PRIORITIES, STATUSES, COLORS, CATEGORIES } from '../constants'
+import { PRIORITIES, STATUSES, COLORS } from '../constants'
 
 interface Props {
   initial?: Partial<Task>
+  categories: string[]
+  onAddCategory: (name: string) => void
   onSubmit: (data: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => void
   onCancel: () => void
 }
@@ -12,14 +14,28 @@ const PRIORITY_COLORS: Record<Priority, string> = {
   urgent: '#ff4444', high: '#f5a623', normal: '#5e6ad2', low: 'var(--text-muted)',
 }
 
-export default function TaskForm({ initial, onSubmit, onCancel }: Props) {
+export default function TaskForm({ initial, categories, onAddCategory, onSubmit, onCancel }: Props) {
   const [title, setTitle] = useState(initial?.title ?? '')
   const [description, setDescription] = useState(initial?.description ?? '')
-  const [category, setCategory] = useState(initial?.category ?? CATEGORIES[0])
+  const [category, setCategory] = useState(initial?.category ?? categories[0] ?? '')
   const [color, setColor] = useState(initial?.color ?? COLORS[5])
   const [priority, setPriority] = useState<Priority>(initial?.priority ?? 'normal')
   const [status, setStatus] = useState<Status>(initial?.status ?? 'todo')
   const [deadline, setDeadline] = useState(initial?.deadline ?? '')
+  const [addingCat, setAddingCat] = useState(false)
+  const [newCat, setNewCat] = useState('')
+
+  // Keep an orphan category (e.g. its definition was later deleted) selectable.
+  const catOptions = category && !categories.includes(category) ? [category, ...categories] : categories
+
+  function confirmAddCat() {
+    const n = newCat.trim()
+    if (!n) return
+    onAddCategory(n)
+    setCategory(n)
+    setNewCat('')
+    setAddingCat(false)
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -30,6 +46,7 @@ export default function TaskForm({ initial, onSubmit, onCancel }: Props) {
   const label: React.CSSProperties = { fontSize: 11, fontWeight: 500, color: 'var(--text-muted)', display: 'block', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }
   const inputStyle: React.CSSProperties = { width: '100%', padding: '6px 10px', borderRadius: 6, fontSize: 13, background: 'rgba(var(--on),0.04)', border: '1px solid rgba(var(--on),0.1)', color: 'var(--text)', boxSizing: 'border-box' }
   const selectStyle: React.CSSProperties = { ...inputStyle, cursor: 'pointer', appearance: 'none' }
+  const iconBtnStyle: React.CSSProperties = { padding: '0 11px', borderRadius: 6, fontSize: 14, cursor: 'pointer', background: 'rgba(var(--on),0.05)', border: '1px solid rgba(var(--on),0.1)', color: 'var(--text-muted)', flexShrink: 0 }
 
   return (
     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -51,9 +68,27 @@ export default function TaskForm({ initial, onSubmit, onCancel }: Props) {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
         <div>
           <label style={label}>分类</label>
-          <select style={selectStyle} value={category} onChange={e => setCategory(e.target.value)}>
-            {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
+          {addingCat ? (
+            <div style={{ display: 'flex', gap: 6 }}>
+              <input
+                style={inputStyle}
+                value={newCat}
+                onChange={e => setNewCat(e.target.value)}
+                placeholder="新分类名称"
+                autoFocus
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); confirmAddCat() } }}
+              />
+              <button type="button" onClick={confirmAddCat} style={iconBtnStyle} title="添加">✓</button>
+              <button type="button" onClick={() => { setAddingCat(false); setNewCat('') }} style={iconBtnStyle} title="取消">✕</button>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', gap: 6 }}>
+              <select style={{ ...selectStyle, flex: 1 }} value={category} onChange={e => setCategory(e.target.value)}>
+                {catOptions.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+              <button type="button" onClick={() => setAddingCat(true)} style={iconBtnStyle} title="新建分类">+</button>
+            </div>
+          )}
         </div>
         <div>
           <label style={label}>优先级</label>

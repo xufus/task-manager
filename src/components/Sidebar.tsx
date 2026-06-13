@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import type { Task, Priority, Status } from '../types'
-import { PRIORITIES, STATUSES, CATEGORIES, categoryStyle } from '../constants'
+import { PRIORITIES, STATUSES, categoryStyle } from '../constants'
 import StatusIcon from './StatusIcon'
 import TaskForm from './TaskForm'
 
 interface Props {
   tasks: Task[]
+  categories: string[]
+  onAddCategory: (name: string) => void
   selectedId: string | null
   onSelect: (id: string) => void
   onAdd: (data: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => void
@@ -46,7 +48,7 @@ function PriorityIcon({ priority, status }: { priority: Priority; status: Status
   )
 }
 
-export default function Sidebar({ tasks, selectedId, onSelect, onAdd, onDelete }: Props) {
+export default function Sidebar({ tasks, categories, onAddCategory, selectedId, onSelect, onAdd, onDelete }: Props) {
   const [showForm, setShowForm] = useState(false)
   const [filterStatus, setFilterStatus] = useState<Status | 'all'>('all')
   const [filterCategory, setFilterCategory] = useState<string>('all')
@@ -124,7 +126,7 @@ export default function Sidebar({ tasks, selectedId, onSelect, onAdd, onDelete }
         <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 1 }}>筛选</span>
         {[
           { value: filterStatus, onChange: (v: string) => setFilterStatus(v as Status | 'all'), options: [{ value: 'all', label: '全部状态' }, ...STATUSES.map(s => ({ value: s.value, label: s.label }))] },
-          { value: filterCategory, onChange: (v: string) => setFilterCategory(v), options: [{ value: 'all', label: '全部分类' }, ...CATEGORIES.map(c => ({ value: c, label: c }))] },
+          { value: filterCategory, onChange: (v: string) => setFilterCategory(v), options: [{ value: 'all', label: '全部分类' }, ...categories.map(c => ({ value: c, label: c }))] },
           { value: filterPriority, onChange: (v: string) => setFilterPriority(v as Priority | 'all'), options: [{ value: 'all', label: '全部优先级' }, ...PRIORITIES.map(p => ({ value: p.value, label: p.label }))] },
         ].map((sel, i) => (
           <div key={i} style={{ position: 'relative' }}>
@@ -218,7 +220,7 @@ export default function Sidebar({ tasks, selectedId, onSelect, onAdd, onDelete }
             onClick={e => e.stopPropagation()}
           >
             <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', marginBottom: 16 }}>新建任务</div>
-            <TaskForm onSubmit={data => { onAdd(data); setShowForm(false) }} onCancel={() => setShowForm(false)} />
+            <TaskForm categories={categories} onAddCategory={onAddCategory} onSubmit={data => { onAdd(data); setShowForm(false) }} onCancel={() => setShowForm(false)} />
           </div>
         </div>
       )}

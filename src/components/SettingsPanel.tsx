@@ -1,15 +1,27 @@
 import { useState } from 'react'
 import type { AppSettings } from '../types'
+import { categoryStyle } from '../constants'
 
 interface Props {
   settings: AppSettings
   onUpdate: (updates: Partial<AppSettings>) => void
+  categories: string[]
+  onAddCategory: (name: string) => void
+  onDeleteCategory: (name: string) => void
   onClose: () => void
 }
 
-export default function SettingsPanel({ settings, onUpdate, onClose }: Props) {
+export default function SettingsPanel({ settings, onUpdate, categories, onAddCategory, onDeleteCategory, onClose }: Props) {
   const [apiKey, setApiKey] = useState(settings.apiKey)
   const [showKey, setShowKey] = useState(false)
+  const [newCat, setNewCat] = useState('')
+
+  function addCat() {
+    const n = newCat.trim()
+    if (!n) return
+    onAddCategory(n)
+    setNewCat('')
+  }
 
   const inputStyle: React.CSSProperties = {
     flex: 1, padding: '6px 10px', borderRadius: 6, fontSize: 13,
@@ -62,6 +74,47 @@ export default function SettingsPanel({ settings, onUpdate, onClose }: Props) {
               >{showKey ? '隐藏' : '显示'}</button>
             </div>
             <p style={{ margin: '6px 0 0', fontSize: 11, color: 'var(--text-muted)' }}>用于 AI 日报和周报功能，仅保存在本地浏览器</p>
+          </div>
+
+          <div>
+            <label style={label}>分类管理</label>
+            <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+              <input
+                value={newCat}
+                onChange={e => setNewCat(e.target.value)}
+                placeholder="新分类名称"
+                style={inputStyle}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addCat() } }}
+              />
+              <button
+                onClick={addCat}
+                style={{
+                  padding: '6px 14px', borderRadius: 6, fontSize: 12, cursor: 'pointer', whiteSpace: 'nowrap',
+                  background: 'rgba(94,106,210,0.15)', border: '1px solid rgba(94,106,210,0.3)', color: '#7b8ce8',
+                }}
+              >添加</button>
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {categories.map(c => {
+                const cs = categoryStyle(c)
+                return (
+                  <span key={c} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: cs.text, background: cs.bg, padding: '3px 7px 3px 9px', borderRadius: 12 }}>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: cs.dot }} />
+                    {c}
+                    {categories.length > 1 && (
+                      <button
+                        onClick={() => onDeleteCategory(c)}
+                        title="删除分类"
+                        style={{ background: 'none', border: 'none', color: cs.text, cursor: 'pointer', fontSize: 13, lineHeight: 1, padding: 0, opacity: 0.55 }}
+                        onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
+                        onMouseLeave={e => (e.currentTarget.style.opacity = '0.55')}
+                      >✕</button>
+                    )}
+                  </span>
+                )
+              })}
+            </div>
+            <p style={{ margin: '8px 0 0', fontSize: 11, color: 'var(--text-muted)' }}>删除分类不会影响已使用该分类的任务（至少保留一个）</p>
           </div>
         </div>
 

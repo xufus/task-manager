@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { Task, JournalEntry, DailySummary, WeeklySummary, AppSettings } from './types'
+import { DEFAULT_CATEGORIES } from './constants'
 
 function useLocalStorage<T>(key: string, initial: T) {
   const [value, setValue] = useState<T>(() => {
@@ -24,6 +25,7 @@ export function useAppStore() {
   const [dailySummaries, setDailySummaries] = useLocalStorage<DailySummary[]>('dailySummaries', [])
   const [weeklySummaries, setWeeklySummaries] = useLocalStorage<WeeklySummary[]>('weeklySummaries', [])
   const [settings, setSettings] = useLocalStorage<AppSettings>('settings', { apiKey: '', theme: 'system' })
+  const [categories, setCategories] = useLocalStorage<string[]>('categories', DEFAULT_CATEGORIES)
 
   const addTask = useCallback((task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
     const now = new Date().toISOString()
@@ -58,11 +60,23 @@ export function useAppStore() {
     setSettings(prev => ({ ...prev, ...updates }))
   }, [setSettings])
 
+  const addCategory = useCallback((name: string) => {
+    const n = name.trim()
+    if (!n) return
+    setCategories(prev => prev.includes(n) ? prev : [...prev, n])
+  }, [setCategories])
+
+  // Keep at least one category so task creation always has a valid default.
+  const deleteCategory = useCallback((name: string) => {
+    setCategories(prev => prev.length <= 1 ? prev : prev.filter(c => c !== name))
+  }, [setCategories])
+
   return {
     tasks, addTask, updateTask, deleteTask, reorderTasks,
     journalEntries, addJournalEntry,
     dailySummaries, addDailySummary,
     weeklySummaries, addWeeklySummary,
     settings, updateSettings,
+    categories, addCategory, deleteCategory,
   }
 }

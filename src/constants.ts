@@ -18,7 +18,9 @@ export const COLORS = [
   '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899',
 ]
 
-export const CATEGORIES = ['工作', '学习', '个人', '健康', '其他']
+// Default category set for fresh installs; the live list is user-editable
+// and persisted in localStorage (see useAppStore).
+export const DEFAULT_CATEGORIES = ['工作']
 
 // 分类标签配色：返回小圆点主色 / 文字色 / 胶囊背景色
 const CATEGORY_HUES: Record<string, number> = {

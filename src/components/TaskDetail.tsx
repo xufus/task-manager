@@ -6,6 +6,8 @@ import StatusIcon from './StatusIcon'
 
 interface Props {
   task: Task | null
+  categories: string[]
+  onAddCategory: (name: string) => void
   onUpdate: (id: string, updates: Partial<Task>) => void
   onDelete: (id: string) => void
   onClose: () => void
@@ -18,7 +20,7 @@ const PRIORITY_LABELS: Record<string, string> = {
   urgent: '紧急', high: '高', normal: '普通', low: '低',
 }
 
-export default function TaskDetail({ task, onUpdate, onDelete, onClose }: Props) {
+export default function TaskDetail({ task, categories, onAddCategory, onUpdate, onDelete, onClose }: Props) {
   const [editing, setEditing] = useState(false)
 
   if (!task) {
@@ -48,7 +50,7 @@ export default function TaskDetail({ task, onUpdate, onDelete, onClose }: Props)
             <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>编辑任务</span>
             <button onClick={() => setEditing(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 12 }}>取消</button>
           </div>
-          <TaskForm initial={task} onSubmit={data => { onUpdate(task.id, data); setEditing(false) }} onCancel={() => setEditing(false)} />
+          <TaskForm initial={task} categories={categories} onAddCategory={onAddCategory} onSubmit={data => { onUpdate(task.id, data); setEditing(false) }} onCancel={() => setEditing(false)} />
         </div>
       </div>
     )

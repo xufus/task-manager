@@ -114,6 +114,8 @@ export default function App() {
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
         <Sidebar
           tasks={store.tasks}
+          categories={store.categories}
+          onAddCategory={store.addCategory}
           selectedId={selectedTaskId}
           onSelect={selectTask}
           onAdd={store.addTask}
@@ -145,6 +147,8 @@ export default function App() {
             ) : (
               <TaskDetail
                 task={selectedTask}
+                categories={store.categories}
+                onAddCategory={store.addCategory}
                 onUpdate={store.updateTask}
                 onDelete={id => { store.deleteTask(id); closeDetail() }}
                 onClose={closeDetail}
@@ -162,7 +166,14 @@ export default function App() {
       </div>
 
       {showSettings && (
-        <SettingsPanel settings={store.settings} onUpdate={store.updateSettings} onClose={() => setShowSettings(false)} />
+        <SettingsPanel
+          settings={store.settings}
+          onUpdate={store.updateSettings}
+          categories={store.categories}
+          onAddCategory={store.addCategory}
+          onDeleteCategory={store.deleteCategory}
+          onClose={() => setShowSettings(false)}
+        />
       )}
 
       {summary && (
