@@ -43,14 +43,14 @@ export default function Journal({ entries, tasks, activeTaskId, onAdd }: Props) 
 
   return (
     <div style={{
-      width: 240, flexShrink: 0, height: '100%',
+      width: 320, flexShrink: 0, height: '100%',
       display: 'flex', flexDirection: 'column',
       borderLeft: '1px solid rgba(255,255,255,0.06)',
       background: '#0a0a0e',
     }}>
       {/* Header */}
       <div style={{ padding: '10px 12px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-        <div style={{ fontSize: 10, fontWeight: 600, color: '#8a8a9a', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 2 }}>
+        <div style={{ fontSize: 14, fontWeight: 600, color: '#8a8a9a', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 2 }}>
           工作日志
         </div>
         <div style={{ fontSize: 11, color: activeTask ? '#5e6ad2' : '#8a8a9a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -61,8 +61,17 @@ export default function Journal({ entries, tasks, activeTaskId, onAdd }: Props) 
       {/* Entries */}
       <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
         {displayed.length === 0 ? (
-          <div style={{ textAlign: 'center', color: '#8a8a9a', fontSize: 12, padding: '24px 0' }}>
-            {activeTask ? '该任务暂无日志' : '今天还没有记录'}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '0 24px' }}>
+            <svg width="42" height="42" viewBox="0 0 42 42" fill="none">
+              <rect x="10" y="6" width="22" height="30" rx="3" stroke="rgba(255,255,255,0.12)" strokeWidth="1.6" />
+              <path d="M15 14h12M15 20h12M15 26h7" stroke="rgba(255,255,255,0.12)" strokeWidth="1.6" strokeLinecap="round" />
+            </svg>
+            <div style={{ fontSize: 13, fontWeight: 500, color: '#8a8a9a' }}>
+              {activeTask ? '该任务暂无日志' : '今天还没有记录'}
+            </div>
+            <div style={{ fontSize: 12, color: '#666680', textAlign: 'center' }}>
+              {activeTask ? '在下方记录该任务的进展' : '在下方记录你的工作进展'}
+            </div>
           </div>
         ) : (
           displayed.map((entry, idx) => {
@@ -74,15 +83,15 @@ export default function Journal({ entries, tasks, activeTaskId, onAdd }: Props) 
               }}>
                 {taskTitle && (
                   <span style={{
-                    display: 'inline-block', fontSize: 11, fontWeight: 500,
+                    display: 'inline-block', fontSize: 12, fontWeight: 500,
                     color: '#5e6ad2', background: 'rgba(94,106,210,0.15)',
-                    padding: '2px 6px', borderRadius: 4, marginBottom: 6,
+                    padding: '3px 8px', borderRadius: 4, marginBottom: 6,
                     maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                   }}>
                     {taskTitle}
                   </span>
                 )}
-                <div style={{ fontSize: 12, color: '#e2e2e8', whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+                <div style={{ fontSize: 13, color: '#e2e2e8', whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
                   {entry.content}
                 </div>
                 <div style={{ fontSize: 11, color: '#666680', marginTop: 5, textAlign: 'right' }}>
@@ -107,9 +116,9 @@ export default function Journal({ entries, tasks, activeTaskId, onAdd }: Props) 
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(e) } }}
           placeholder={activeTask ? `记录「${activeTask.title}」的进展…` : '记录工作进展… (Enter 提交)'}
-          rows={3}
+          rows={2}
           style={{
-            width: '100%', borderRadius: 6, padding: '7px 9px', fontSize: 12,
+            width: '100%', height: 40, borderRadius: 6, padding: '7px 9px', fontSize: 13,
             background: 'rgba(255,255,255,0.04)',
             border: '1px solid rgba(255,255,255,0.08)',
             color: '#e2e2e8', resize: 'none', lineHeight: 1.5, boxSizing: 'border-box',
@@ -119,7 +128,7 @@ export default function Journal({ entries, tasks, activeTaskId, onAdd }: Props) 
           <button
             onClick={handleSubmit}
             style={{
-              padding: '5px 16px', borderRadius: 6, fontSize: 12,
+              width: 64, height: 34, padding: 0, borderRadius: 6, fontSize: 12,
               fontWeight: 500, background: '#5e6ad2', color: '#fff', border: 'none',
               cursor: 'pointer', transition: 'filter 0.1s',
             }}

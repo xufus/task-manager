@@ -28,8 +28,9 @@ export default function StatsBar({ tasks, onGenerateSummary, onGenerateWeekly, g
 
   return (
     <div style={{
-      height: 44,
+      height: 56,
       flexShrink: 0,
+      position: 'relative',
       display: 'flex',
       alignItems: 'center',
       gap: 16,
@@ -37,32 +38,49 @@ export default function StatsBar({ tasks, onGenerateSummary, onGenerateWeekly, g
       borderBottom: '1px solid rgba(255,255,255,0.06)',
       background: '#0a0a0e',
     }}>
-      <span style={{ fontWeight: 600, fontSize: 14, color: '#e2e2e8', letterSpacing: '-0.01em' }}>
+      <span style={{ fontWeight: 600, fontSize: 18, color: '#e2e2e8', letterSpacing: '-0.01em' }}>
         Tasks
       </span>
 
       <div style={{ width: '1px', height: 16, background: 'rgba(255,255,255,0.08)' }} />
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 12, color: '#8a8a9a' }}>
-        <span><span style={{ color: '#e2e2e8', fontWeight: 500 }}>{total}</span> 个任务</span>
-        <span style={{ color: '#5e6ad2', fontWeight: 500 }}>{inProgress} 进行中</span>
-        <span style={{ color: '#00c853', fontWeight: 500 }}>{done} 已完成</span>
-        {overdue > 0 && <span style={{ color: '#ff4444', fontWeight: 500 }}>{overdue} 逾期</span>}
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0 20px' }}>
+          <span style={{ fontFamily: 'ui-monospace,monospace', fontSize: 18, fontWeight: 700, color: '#e2e2e8', lineHeight: 1 }}>{total}</span>
+          <span style={{ fontSize: 12, color: '#8a8a9a', marginTop: 3 }}>个任务</span>
+        </div>
+        <div style={{ width: 1, height: 28, background: 'rgba(255,255,255,0.12)' }} />
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0 20px' }}>
+          <span style={{ fontFamily: 'ui-monospace,monospace', fontSize: 18, fontWeight: 700, color: '#e2e2e8', lineHeight: 1 }}>{inProgress}</span>
+          <span style={{ fontSize: 12, color: '#8a8a9a', marginTop: 3 }}>进行中</span>
+        </div>
+        <div style={{ width: 1, height: 28, background: 'rgba(255,255,255,0.12)' }} />
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0 20px' }}>
+          <span style={{ fontFamily: 'ui-monospace,monospace', fontSize: 18, fontWeight: 700, color: '#e2e2e8', lineHeight: 1 }}>{done}</span>
+          <span style={{ fontSize: 12, color: '#8a8a9a', marginTop: 3 }}>已完成</span>
+        </div>
+        {overdue > 0 && (
+          <>
+            <div style={{ width: 1, height: 28, background: 'rgba(255,255,255,0.12)' }} />
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0 20px' }}>
+              <span style={{ fontFamily: 'ui-monospace,monospace', fontSize: 18, fontWeight: 700, color: '#ff4444', lineHeight: 1 }}>{overdue}</span>
+              <span style={{ fontSize: 12, color: '#8a8a9a', marginTop: 3 }}>逾期</span>
+            </div>
+          </>
+        )}
       </div>
 
       {total > 0 && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <div style={{
+          position: 'absolute', bottom: 0, left: 0, right: 0,
+          height: 3, background: 'rgba(255,255,255,0.08)', overflow: 'hidden',
+        }}>
           <div style={{
-            width: 80, height: 3, borderRadius: 2,
-            background: 'rgba(255,255,255,0.1)', overflow: 'hidden',
-          }}>
-            <div style={{
-              height: '100%', borderRadius: 2, background: '#5e6ad2',
-              width: `${Math.round((done / total) * 100)}%`,
-              transition: 'width 0.3s',
-            }} />
-          </div>
-          <span style={{ fontSize: 11, color: '#8a8a9a' }}>{Math.round((done / total) * 100)}%</span>
+            height: '100%',
+            background: 'linear-gradient(to right, #5e6ad2, #7b8ce8)',
+            width: `${Math.round((done / total) * 100)}%`,
+            transition: 'width 0.3s',
+          }} />
         </div>
       )}
 

@@ -6,6 +6,7 @@ import {
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import type { Task, Status, Priority } from '../types'
+import { categoryStyle } from '../constants'
 import StatusIcon from './StatusIcon'
 
 const STATUS_NEXT: Record<Status, Status | null> = {
@@ -66,7 +67,7 @@ function TaskCard({ task, isExpanded: expanded, onUpdateTask, onDeleteTask, onEx
     >
       {/* Header — always visible */}
       <div
-        style={{ padding: '9px 10px', display: 'flex', alignItems: 'flex-start', gap: 8 }}
+        style={{ padding: '7px 9px', display: 'flex', alignItems: 'flex-start', gap: 8 }}
         onClick={toggleExpand}
       >
         <div style={{ marginTop: 1, flexShrink: 0 }}>
@@ -88,15 +89,30 @@ function TaskCard({ task, isExpanded: expanded, onUpdateTask, onDeleteTask, onEx
                 </span>
               )}
               <span style={{ width: 5, height: 5, borderRadius: '50%', background: PRIORITY_COLORS[task.priority], flexShrink: 0 }} />
-              <span style={{ fontSize: 11, color: '#8a8a9a', background: 'rgba(255,255,255,0.05)', padding: '1px 5px', borderRadius: 4 }}>{task.category}</span>
+              {(() => {
+                const cs = categoryStyle(task.category)
+                return (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, color: cs.text, background: cs.bg, padding: '1px 6px 1px 5px', borderRadius: 10, flexShrink: 0 }}>
+                    <span style={{ width: 5, height: 5, borderRadius: '50%', background: cs.dot, flexShrink: 0 }} />
+                    {task.category}
+                  </span>
+                )
+              })()}
               {task.deadline && (
                 <span style={{ fontSize: 11, color: isOverdue ? '#ff4444' : '#8a8a9a' }}>{task.deadline}</span>
               )}
             </div>
           )}
         </div>
-        <span style={{ color: '#8a8a9a', fontSize: 10, flexShrink: 0, marginTop: 2, opacity: 0.6 }}>
-          {expanded ? '▲' : '▼'}
+        <span style={{
+          flexShrink: 0, marginTop: 3, display: 'flex',
+          opacity: isHovered || expanded ? 1 : 0,
+          transform: expanded ? 'rotate(180deg)' : 'none',
+          transition: 'opacity 0.12s, transform 0.15s',
+        }}>
+          <svg width="11" height="7" viewBox="0 0 11 7" fill="none">
+            <path d="M1 1.5L5.5 6L10 1.5" stroke="#666680" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         </span>
       </div>
 
@@ -115,7 +131,10 @@ function TaskCard({ task, isExpanded: expanded, onUpdateTask, onDeleteTask, onEx
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginTop: 10 }}>
             <div style={{ padding: '6px 8px', background: 'rgba(255,255,255,0.03)', borderRadius: 6, border: '1px solid rgba(255,255,255,0.06)' }}>
               <div style={{ fontSize: 10, color: '#8a8a9a', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 3 }}>分类</div>
-              <div style={{ fontSize: 12, color: '#e2e2e8', fontWeight: 500 }}>{task.category}</div>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, color: categoryStyle(task.category).text, fontWeight: 500 }}>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: categoryStyle(task.category).dot, flexShrink: 0 }} />
+                {task.category}
+              </div>
             </div>
             <div style={{ padding: '6px 8px', background: 'rgba(255,255,255,0.03)', borderRadius: 6, border: '1px solid rgba(255,255,255,0.06)' }}>
               <div style={{ fontSize: 10, color: '#8a8a9a', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 3 }}>优先级</div>
@@ -206,10 +225,10 @@ function EmptyColumn() {
   )
 }
 
-const COLUMN_STYLES: Record<Status, { bg: string; accent: string; label: string }> = {
-  todo:        { bg: 'rgba(255,255,255,0.02)', accent: '#8a8a9a', label: '待办' },
-  in_progress: { bg: 'rgba(94,106,210,0.04)', accent: '#5e6ad2', label: '进行中' },
-  done:        { bg: 'rgba(0,200,83,0.03)',   accent: '#00c853', label: '完成' },
+const COLUMN_STYLES: Record<Status, { accent: string; label: string }> = {
+  todo:        { accent: '#8a8a9a', label: '待办' },
+  in_progress: { accent: '#5e6ad2', label: '进行中' },
+  done:        { accent: '#00c853', label: '完成' },
 }
 
 function Column({ status, tasks, expandedId, onUpdateTask, onDeleteTask, onExpand }: {
@@ -223,10 +242,10 @@ function Column({ status, tasks, expandedId, onUpdateTask, onDeleteTask, onExpan
 
   return (
     <div style={{
-      flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0,
-      background: col.bg,
+      flex: 1, display: 'flex', flexDirection: 'column', minWidth: 220, maxHeight: '100%',
+      background: 'rgba(255,255,255,0.015)',
       border: '1px solid rgba(255,255,255,0.06)',
-      borderRadius: 6, padding: '10px 8px',
+      borderRadius: 8, padding: '10px 8px',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, padding: '0 2px' }}>
         <span style={{ width: 6, height: 6, borderRadius: '50%', background: col.accent, flexShrink: 0 }} />
@@ -238,7 +257,7 @@ function Column({ status, tasks, expandedId, onUpdateTask, onDeleteTask, onExpan
         }}>{tasks.length}</span>
       </div>
       <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
-        <div ref={setNodeRef} style={{ display: 'flex', flexDirection: 'column', gap: 5, flex: 1, overflowY: 'auto', minHeight: 60 }}>
+        <div ref={setNodeRef} style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, overflowY: 'auto', minHeight: 130 }}>
           {tasks.length === 0 ? (
             <EmptyColumn />
           ) : (
@@ -319,7 +338,7 @@ export default function KanbanBoard({ tasks, onUpdateTask, onReorder, onDeleteTa
 
   return (
     <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <div style={{ display: 'flex', gap: 10, height: '100%', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', gap: 16, height: '100%', alignItems: 'flex-start', overflow: 'hidden' }}>
         {columns.map(col => (
           <Column
             key={col.status} status={col.status}

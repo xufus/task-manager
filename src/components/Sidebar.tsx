@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { Task, Priority, Status } from '../types'
-import { PRIORITIES, STATUSES, CATEGORIES } from '../constants'
+import { PRIORITIES, STATUSES, CATEGORIES, categoryStyle } from '../constants'
 import StatusIcon from './StatusIcon'
 import TaskForm from './TaskForm'
 
@@ -14,6 +14,36 @@ interface Props {
 
 const PRIORITY_COLORS: Record<Priority, string> = {
   urgent: '#ff4444', high: '#f5a623', normal: '#5e6ad2', low: '#8a8a9a',
+}
+const PRIORITY_TITLE_COLORS: Record<Priority, string> = {
+  urgent: '#ff6b6b', high: '#f5a623', normal: '#e2e2e8', low: '#8a8a9a',
+}
+function PriorityIcon({ priority, status }: { priority: Priority; status: Status }) {
+  if (status === 'done') return (
+    <svg width="12" height="10" viewBox="0 0 12 10" fill="none" style={{ flexShrink: 0 }}>
+      <path d="M1 5l3.5 3.5L11 1" stroke="#00c853" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+  if (priority === 'urgent') return (
+    <svg width="8" height="8" viewBox="0 0 8 8" style={{ flexShrink: 0 }}>
+      <circle cx="4" cy="4" r="4" fill="#ff4444"/>
+    </svg>
+  )
+  if (priority === 'high') return (
+    <svg width="10" height="9" viewBox="0 0 10 9" style={{ flexShrink: 0 }}>
+      <polygon points="5,0 10,9 0,9" fill="#f5a623"/>
+    </svg>
+  )
+  if (priority === 'normal') return (
+    <svg width="8" height="8" viewBox="0 0 8 8" style={{ flexShrink: 0 }}>
+      <circle cx="4" cy="4" r="4" fill="#5e6ad2"/>
+    </svg>
+  )
+  return (
+    <svg width="8" height="8" viewBox="0 0 8 8" fill="none" style={{ flexShrink: 0 }}>
+      <circle cx="4" cy="4" r="3" stroke="#8a8a9a" strokeWidth="1.5"/>
+    </svg>
+  )
 }
 
 export default function Sidebar({ tasks, selectedId, onSelect, onAdd, onDelete }: Props) {
@@ -33,10 +63,10 @@ export default function Sidebar({ tasks, selectedId, onSelect, onAdd, onDelete }
 
   const selStyle: React.CSSProperties = {
     width: '100%',
-    height: 28,
+    height: 32,
     padding: '0 24px 0 8px',
     borderRadius: 6,
-    fontSize: 11,
+    fontSize: 13,
     background: 'transparent',
     border: '1px solid rgba(255,255,255,0.1)',
     color: '#e2e2e8',
@@ -54,7 +84,7 @@ export default function Sidebar({ tasks, selectedId, onSelect, onAdd, onDelete }
 
   return (
     <div style={{
-      width: 220, flexShrink: 0, height: '100%',
+      width: 260, flexShrink: 0, height: '100%',
       display: 'flex', flexDirection: 'column',
       background: '#0a0a0e',
       borderRight: '1px solid rgba(255,255,255,0.06)',
@@ -62,13 +92,13 @@ export default function Sidebar({ tasks, selectedId, onSelect, onAdd, onDelete }
       {/* Header */}
       <div style={{ padding: '10px 12px 8px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-          <span style={{ fontSize: 10, fontWeight: 600, color: '#8a8a9a', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+          <span style={{ fontSize: 13, fontWeight: 600, color: '#8a8a9a', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
             我的任务
           </span>
           <button
             onClick={() => setShowForm(true)}
             style={{
-              padding: '3px 8px', borderRadius: 6, fontSize: 11, fontWeight: 500,
+              height: 30, padding: '0 10px', borderRadius: 6, fontSize: 13, fontWeight: 500,
               background: '#5e6ad2', color: '#fff', border: 'none', cursor: 'pointer',
               transition: 'filter 0.1s',
             }}
@@ -81,7 +111,7 @@ export default function Sidebar({ tasks, selectedId, onSelect, onAdd, onDelete }
           onChange={e => setSearch(e.target.value)}
           placeholder="搜索任务…"
           style={{
-            width: '100%', padding: '5px 8px', borderRadius: 6, fontSize: 12,
+            width: '100%', height: 34, padding: '0 8px', borderRadius: 6, fontSize: 13,
             background: 'rgba(255,255,255,0.04)',
             border: '1px solid rgba(255,255,255,0.06)',
             color: '#e2e2e8', boxSizing: 'border-box',
@@ -90,7 +120,7 @@ export default function Sidebar({ tasks, selectedId, onSelect, onAdd, onDelete }
       </div>
 
       {/* Filters */}
-      <div style={{ padding: '8px 12px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: 5 }}>
+      <div style={{ padding: '6px 12px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: 6 }}>
         <span style={{ fontSize: 10, fontWeight: 600, color: '#8a8a9a', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 1 }}>筛选</span>
         {[
           { value: filterStatus, onChange: (v: string) => setFilterStatus(v as Status | 'all'), options: [{ value: 'all', label: '全部状态' }, ...STATUSES.map(s => ({ value: s.value, label: s.label }))] },
@@ -125,13 +155,15 @@ export default function Sidebar({ tasks, selectedId, onSelect, onAdd, onDelete }
                 onClick={() => onSelect(task.id)}
                 style={{
                   position: 'relative',
-                  padding: '7px 12px 7px 14px',
+                  padding: '5px 12px 4px 14px',
+                  minHeight: 36, boxSizing: 'border-box',
                   cursor: 'pointer',
                   borderBottom: '1px solid rgba(255,255,255,0.04)',
                   display: 'flex', alignItems: 'flex-start', gap: 8,
                   background: isSelected ? 'rgba(94,106,210,0.1)' : 'transparent',
-                  transition: 'background 0.1s',
-                  borderLeft: isSelected ? '2px solid #5e6ad2' : '2px solid transparent',
+                  transition: 'background 0.1s, opacity 0.1s',
+                  opacity: task.status === 'done' ? 0.6 : 1,
+                  borderLeft: `3px solid ${isSelected ? '#5e6ad2' : PRIORITY_COLORS[task.priority]}`,
                 }}
                 onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
                 onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = 'transparent' }}
@@ -141,17 +173,14 @@ export default function Sidebar({ tasks, selectedId, onSelect, onAdd, onDelete }
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{
-                    fontSize: 13, fontWeight: 400,
-                    color: task.status === 'done' ? '#8a8a9a' : '#e2e2e8',
+                    fontSize: 13, fontWeight: 500,
+                    color: task.status === 'done' ? '#666680' : PRIORITY_TITLE_COLORS[task.priority],
                     textDecoration: task.status === 'done' ? 'line-through' : 'none',
                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                   }}>{task.title}</div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2 }}>
-                    <span style={{
-                      width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
-                      background: PRIORITY_COLORS[task.priority],
-                    }} />
-                    <span style={{ fontSize: 11, color: '#8a8a9a' }}>{task.category}</span>
+                    <PriorityIcon priority={task.priority} status={task.status} />
+                    <span style={{ fontSize: 11, color: task.status === 'done' ? '#666680' : categoryStyle(task.category).text }}>{task.category}</span>
                     {task.deadline && (
                       <span style={{
                         fontSize: 11,
