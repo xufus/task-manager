@@ -20,7 +20,7 @@ const STATUS_NEXT_LABEL: Record<Status, string> = {
 }
 
 const PRIORITY_COLORS: Record<Priority, string> = {
-  urgent: '#ff4444', high: '#f5a623', normal: '#5e6ad2', low: '#8a8a9a',
+  urgent: '#ff4444', high: '#f5a623', normal: '#5e6ad2', low: 'var(--text-muted)',
 }
 const PRIORITY_LABELS: Record<Priority, string> = {
   urgent: '紧急', high: '高', normal: '普通', low: '低',
@@ -45,14 +45,14 @@ function TaskCard({ task, isExpanded: expanded, onUpdateTask, onDeleteTask, onEx
   const prev = STATUS_PREV[task.status]
   const isOverdue = task.deadline && new Date(task.deadline) < new Date() && task.status !== 'done'
 
-  const borderColor = expanded ? 'rgba(94,106,210,0.35)' : isHovered ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.06)'
+  const borderColor = expanded ? 'rgba(94,106,210,0.35)' : isHovered ? 'rgba(var(--on),0.15)' : 'rgba(var(--on),0.06)'
 
   return (
     <div
       ref={setNodeRef}
       style={{
         ...style,
-        background: '#1a1a24',
+        background: 'var(--bg-card)',
         border: `1px solid ${borderColor}`,
         borderLeft: `3px solid ${PRIORITY_COLORS[task.priority]}`,
         borderRadius: 6,
@@ -76,7 +76,7 @@ function TaskCard({ task, isExpanded: expanded, onUpdateTask, onDeleteTask, onEx
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{
             fontSize: 13, fontWeight: 500,
-            color: task.status === 'done' ? '#8a8a9a' : '#e2e2e8',
+            color: task.status === 'done' ? 'var(--text-muted)' : 'var(--text)',
             textDecoration: task.status === 'done' ? 'line-through' : 'none',
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           }}>{task.title}</div>
@@ -84,7 +84,7 @@ function TaskCard({ task, isExpanded: expanded, onUpdateTask, onDeleteTask, onEx
           {!expanded && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 4, flexWrap: 'wrap' }}>
               {task.description && (
-                <span style={{ fontSize: 11, color: '#8a8a9a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 120 }}>
+                <span style={{ fontSize: 11, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 120 }}>
                   {task.description}
                 </span>
               )}
@@ -99,7 +99,7 @@ function TaskCard({ task, isExpanded: expanded, onUpdateTask, onDeleteTask, onEx
                 )
               })()}
               {task.deadline && (
-                <span style={{ fontSize: 11, color: isOverdue ? '#ff4444' : '#8a8a9a' }}>{task.deadline}</span>
+                <span style={{ fontSize: 11, color: isOverdue ? '#ff4444' : 'var(--text-muted)' }}>{task.deadline}</span>
               )}
             </div>
           )}
@@ -111,7 +111,7 @@ function TaskCard({ task, isExpanded: expanded, onUpdateTask, onDeleteTask, onEx
           transition: 'opacity 0.12s, transform 0.15s',
         }}>
           <svg width="11" height="7" viewBox="0 0 11 7" fill="none">
-            <path d="M1 1.5L5.5 6L10 1.5" stroke="#666680" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M1 1.5L5.5 6L10 1.5" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" style={{ stroke: 'var(--text-faint)' }} />
           </svg>
         </span>
       </div>
@@ -119,25 +119,25 @@ function TaskCard({ task, isExpanded: expanded, onUpdateTask, onDeleteTask, onEx
       {/* Expanded details */}
       {expanded && (
         <div
-          style={{ padding: '0 10px 10px', borderTop: '1px solid rgba(255,255,255,0.06)' }}
+          style={{ padding: '0 10px 10px', borderTop: '1px solid rgba(var(--on),0.06)' }}
           onClick={e => e.stopPropagation()}
         >
           {task.description && (
-            <p style={{ fontSize: 12, color: '#8a8a9a', marginTop: 10, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+            <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 10, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
               {task.description}
             </p>
           )}
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginTop: 10 }}>
-            <div style={{ padding: '6px 8px', background: 'rgba(255,255,255,0.03)', borderRadius: 6, border: '1px solid rgba(255,255,255,0.06)' }}>
-              <div style={{ fontSize: 10, color: '#8a8a9a', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 3 }}>分类</div>
+            <div style={{ padding: '6px 8px', background: 'rgba(var(--on),0.03)', borderRadius: 6, border: '1px solid rgba(var(--on),0.06)' }}>
+              <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 3 }}>分类</div>
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, color: categoryStyle(task.category).text, fontWeight: 500 }}>
                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: categoryStyle(task.category).dot, flexShrink: 0 }} />
                 {task.category}
               </div>
             </div>
-            <div style={{ padding: '6px 8px', background: 'rgba(255,255,255,0.03)', borderRadius: 6, border: '1px solid rgba(255,255,255,0.06)' }}>
-              <div style={{ fontSize: 10, color: '#8a8a9a', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 3 }}>优先级</div>
+            <div style={{ padding: '6px 8px', background: 'rgba(var(--on),0.03)', borderRadius: 6, border: '1px solid rgba(var(--on),0.06)' }}>
+              <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 3 }}>优先级</div>
               <div style={{ fontSize: 12, fontWeight: 500, color: PRIORITY_COLORS[task.priority] }}>
                 {PRIORITY_LABELS[task.priority]}
               </div>
@@ -145,11 +145,11 @@ function TaskCard({ task, isExpanded: expanded, onUpdateTask, onDeleteTask, onEx
             {task.deadline && (
               <div style={{
                 padding: '6px 8px', borderRadius: 6, gridColumn: '1 / -1',
-                background: isOverdue ? 'rgba(255,68,68,0.08)' : 'rgba(255,255,255,0.03)',
-                border: `1px solid ${isOverdue ? 'rgba(255,68,68,0.2)' : 'rgba(255,255,255,0.06)'}`,
+                background: isOverdue ? 'rgba(255,68,68,0.08)' : 'rgba(var(--on),0.03)',
+                border: `1px solid ${isOverdue ? 'rgba(255,68,68,0.2)' : 'rgba(var(--on),0.06)'}`,
               }}>
-                <div style={{ fontSize: 10, color: '#8a8a9a', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 3 }}>截止日期</div>
-                <div style={{ fontSize: 12, fontWeight: 500, color: isOverdue ? '#ff4444' : '#e2e2e8' }}>
+                <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 3 }}>截止日期</div>
+                <div style={{ fontSize: 12, fontWeight: 500, color: isOverdue ? '#ff4444' : 'var(--text)' }}>
                   {task.deadline}{isOverdue ? ' · 已逾期' : ''}
                 </div>
               </div>
@@ -163,8 +163,8 @@ function TaskCard({ task, isExpanded: expanded, onUpdateTask, onDeleteTask, onEx
                 onClick={() => onUpdateTask(task.id, { status: prev })}
                 style={{
                   padding: '4px 8px', borderRadius: 6, fontSize: 11, cursor: 'pointer',
-                  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
-                  color: '#8a8a9a', transition: 'filter 0.1s',
+                  background: 'rgba(var(--on),0.04)', border: '1px solid rgba(var(--on),0.08)',
+                  color: 'var(--text-muted)', transition: 'filter 0.1s',
                 }}
                 onMouseEnter={e => (e.currentTarget.style.filter = 'brightness(1.3)')}
                 onMouseLeave={e => (e.currentTarget.style.filter = 'none')}
@@ -207,17 +207,17 @@ function EmptyColumn() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, gap: 8, paddingTop: 24 }}>
       <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-        <circle cx="18" cy="18" r="16" stroke="rgba(255,255,255,0.12)" strokeWidth="1.5" strokeDasharray="4 3" />
+        <circle cx="18" cy="18" r="16" strokeWidth="1.5" strokeDasharray="4 3" style={{ stroke: 'rgba(var(--on),0.12)' }} />
       </svg>
-      <span style={{ fontSize: 12, color: '#666680' }}>暂无任务</span>
+      <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>暂无任务</span>
       <button
         onMouseEnter={() => setBtnHovered(true)}
         onMouseLeave={() => setBtnHovered(false)}
         style={{
           marginTop: 4, padding: '5px 14px', borderRadius: 6, fontSize: 12,
           background: 'transparent',
-          border: btnHovered ? '1px solid rgba(255,255,255,0.15)' : '1px solid transparent',
-          color: btnHovered ? '#e2e2e8' : '#666680',
+          border: btnHovered ? '1px solid rgba(var(--on),0.15)' : '1px solid transparent',
+          color: btnHovered ? 'var(--text)' : 'var(--text-faint)',
           cursor: 'pointer', transition: 'border-color 0.15s, color 0.15s',
         }}
       >+ 添加任务</button>
@@ -226,7 +226,7 @@ function EmptyColumn() {
 }
 
 const COLUMN_STYLES: Record<Status, { accent: string; label: string }> = {
-  todo:        { accent: '#8a8a9a', label: '待办' },
+  todo:        { accent: 'var(--text-muted)', label: '待办' },
   in_progress: { accent: '#5e6ad2', label: '进行中' },
   done:        { accent: '#00c853', label: '完成' },
 }
@@ -243,16 +243,16 @@ function Column({ status, tasks, expandedId, onUpdateTask, onDeleteTask, onExpan
   return (
     <div style={{
       flex: 1, display: 'flex', flexDirection: 'column', minWidth: 220, maxHeight: '100%',
-      background: 'rgba(255,255,255,0.015)',
-      border: '1px solid rgba(255,255,255,0.06)',
+      background: 'rgba(var(--on),0.015)',
+      border: '1px solid rgba(var(--on),0.06)',
       borderRadius: 8, padding: '10px 8px',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, padding: '0 2px' }}>
         <span style={{ width: 6, height: 6, borderRadius: '50%', background: col.accent, flexShrink: 0 }} />
         <span style={{ fontSize: 12, fontWeight: 600, color: col.accent }}>{col.label}</span>
         <span style={{
-          fontSize: 11, color: '#8a8a9a',
-          background: 'rgba(255,255,255,0.08)',
+          fontSize: 11, color: 'var(--text-muted)',
+          background: 'rgba(var(--on),0.08)',
           borderRadius: 10, padding: '1px 6px',
         }}>{tasks.length}</span>
       </div>
@@ -353,11 +353,11 @@ export default function KanbanBoard({ tasks, onUpdateTask, onReorder, onDeleteTa
       <DragOverlay>
         {activeTask && (
           <div style={{
-            background: '#1a1a24', border: '1px solid rgba(94,106,210,0.5)',
+            background: 'var(--bg-card)', border: '1px solid rgba(94,106,210,0.5)',
             borderRadius: 6, padding: '9px 10px',
             boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
           }}>
-            <div style={{ fontSize: 13, color: '#e2e2e8' }}>{activeTask.title}</div>
+            <div style={{ fontSize: 13, color: 'var(--text)' }}>{activeTask.title}</div>
           </div>
         )}
       </DragOverlay>

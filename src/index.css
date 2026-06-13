@@ -2,16 +2,32 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 
-:root {
-  --lin-bg:        #0f0f13;
-  --lin-sidebar:   #0a0a0e;
-  --lin-card:      #1a1a24;
-  --lin-accent:    #5e6ad2;
-  --lin-primary:   #e2e2e8;
-  --lin-secondary: #8a8a9a;
-  --lin-border:    rgba(255,255,255,0.06);
-  --lin-hover:     rgba(255,255,255,0.04);
-  --lin-active:    rgba(94,106,210,0.12);
+/* ── Theme tokens ────────────────────────────────────────────────
+   --on is the "overlay channel": used as rgba(var(--on), a) for every
+   border / surface / hover tint, so a single value flips all overlays
+   between light and dark. Brand / priority / status colors are shared. */
+:root,
+:root[data-theme='dark'] {
+  --bg:          #0f0f13;
+  --bg-elevated: #0a0a0e;
+  --bg-card:     #1a1a24;
+  --text:        #e2e2e8;
+  --text-muted:  #8a8a9a;
+  --text-faint:  #666680;
+  --on:          255, 255, 255;
+
+  --accent:      #5e6ad2;
+
+  /* legacy --lin-* aliases (resolved dynamically, so they follow theme) */
+  --lin-bg:        var(--bg);
+  --lin-sidebar:   var(--bg-elevated);
+  --lin-card:      var(--bg-card);
+  --lin-accent:    var(--accent);
+  --lin-primary:   var(--text);
+  --lin-secondary: var(--text-muted);
+  --lin-border:    rgba(var(--on), 0.06);
+  --lin-hover:     rgba(var(--on), 0.04);
+  --lin-active:    rgba(94, 106, 210, 0.12);
 
   --pri-urgent: #ff4444;
   --pri-high:   #f5a623;
@@ -23,13 +39,23 @@
   --st-done:     #00c853;
 }
 
+:root[data-theme='light'] {
+  --bg:          #fbfbfc;
+  --bg-elevated: #f3f3f6;
+  --bg-card:     #ffffff;
+  --text:        #1c1c24;
+  --text-muted:  #5c5c68;
+  --text-faint:  #9a9aa6;
+  --on:          17, 24, 39;
+}
+
 body {
   margin: 0;
   font-family: 'Inter', system-ui, sans-serif;
   font-size: 14px;
   line-height: 1.5;
-  background: var(--lin-bg);
-  color: var(--lin-primary);
+  background: var(--bg);
+  color: var(--text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -41,32 +67,32 @@ body {
 }
 
 ::selection {
-  background: rgba(94,106,210,0.35);
+  background: rgba(94, 106, 210, 0.35);
 }
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
+::-webkit-scrollbar-thumb { background: rgba(var(--on), 0.1); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(var(--on), 0.18); }
 
-/* Base input/select/textarea reset for dark theme */
+/* Base input/select/textarea reset */
 input, textarea, select {
   font-family: inherit;
   font-size: 14px;
-  color: var(--lin-primary);
+  color: var(--text);
   background: transparent;
-  border: 1px solid var(--lin-border);
+  border: 1px solid rgba(var(--on), 0.06);
   border-radius: 6px;
   outline: none;
   transition: border-color 0.1s;
 }
 input:focus, textarea:focus, select:focus {
-  border-color: var(--lin-accent);
+  border-color: var(--accent);
 }
 input::placeholder, textarea::placeholder {
-  color: var(--lin-secondary);
+  color: var(--text-muted);
 }
 select option {
-  background: #1a1a24;
-  color: var(--lin-primary);
+  background: var(--bg-card);
+  color: var(--text);
 }

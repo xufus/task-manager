@@ -13,10 +13,10 @@ interface Props {
 }
 
 const PRIORITY_COLORS: Record<Priority, string> = {
-  urgent: '#ff4444', high: '#f5a623', normal: '#5e6ad2', low: '#8a8a9a',
+  urgent: '#ff4444', high: '#f5a623', normal: '#5e6ad2', low: 'var(--text-muted)',
 }
 const PRIORITY_TITLE_COLORS: Record<Priority, string> = {
-  urgent: '#ff6b6b', high: '#f5a623', normal: '#e2e2e8', low: '#8a8a9a',
+  urgent: '#ff6b6b', high: '#f5a623', normal: 'var(--text)', low: 'var(--text-muted)',
 }
 function PriorityIcon({ priority, status }: { priority: Priority; status: Status }) {
   if (status === 'done') return (
@@ -41,7 +41,7 @@ function PriorityIcon({ priority, status }: { priority: Priority; status: Status
   )
   return (
     <svg width="8" height="8" viewBox="0 0 8 8" fill="none" style={{ flexShrink: 0 }}>
-      <circle cx="4" cy="4" r="3" stroke="#8a8a9a" strokeWidth="1.5"/>
+      <circle cx="4" cy="4" r="3" strokeWidth="1.5" style={{ stroke: 'var(--text-muted)' }}/>
     </svg>
   )
 }
@@ -68,8 +68,8 @@ export default function Sidebar({ tasks, selectedId, onSelect, onAdd, onDelete }
     borderRadius: 6,
     fontSize: 13,
     background: 'transparent',
-    border: '1px solid rgba(255,255,255,0.1)',
-    color: '#e2e2e8',
+    border: '1px solid rgba(var(--on),0.1)',
+    color: 'var(--text)',
     cursor: 'pointer',
     appearance: 'none',
     transition: 'border-color 0.1s',
@@ -78,7 +78,7 @@ export default function Sidebar({ tasks, selectedId, onSelect, onAdd, onDelete }
 
   const ChevronDown = () => (
     <svg width="10" height="6" viewBox="0 0 10 6" fill="none" style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
-      <path d="M1 1L5 5L9 1" stroke="#8a8a9a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M1 1L5 5L9 1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ stroke: 'var(--text-muted)' }} />
     </svg>
   )
 
@@ -86,13 +86,13 @@ export default function Sidebar({ tasks, selectedId, onSelect, onAdd, onDelete }
     <div style={{
       width: 260, flexShrink: 0, height: '100%',
       display: 'flex', flexDirection: 'column',
-      background: '#0a0a0e',
-      borderRight: '1px solid rgba(255,255,255,0.06)',
+      background: 'var(--bg-elevated)',
+      borderRight: '1px solid rgba(var(--on),0.06)',
     }}>
       {/* Header */}
-      <div style={{ padding: '10px 12px 8px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+      <div style={{ padding: '10px 12px 8px', borderBottom: '1px solid rgba(var(--on),0.06)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-          <span style={{ fontSize: 13, fontWeight: 600, color: '#8a8a9a', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
             我的任务
           </span>
           <button
@@ -112,16 +112,16 @@ export default function Sidebar({ tasks, selectedId, onSelect, onAdd, onDelete }
           placeholder="搜索任务…"
           style={{
             width: '100%', height: 34, padding: '0 8px', borderRadius: 6, fontSize: 13,
-            background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.06)',
-            color: '#e2e2e8', boxSizing: 'border-box',
+            background: 'rgba(var(--on),0.04)',
+            border: '1px solid rgba(var(--on),0.06)',
+            color: 'var(--text)', boxSizing: 'border-box',
           }}
         />
       </div>
 
       {/* Filters */}
-      <div style={{ padding: '6px 12px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <span style={{ fontSize: 10, fontWeight: 600, color: '#8a8a9a', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 1 }}>筛选</span>
+      <div style={{ padding: '6px 12px', borderBottom: '1px solid rgba(var(--on),0.06)', display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 1 }}>筛选</span>
         {[
           { value: filterStatus, onChange: (v: string) => setFilterStatus(v as Status | 'all'), options: [{ value: 'all', label: '全部状态' }, ...STATUSES.map(s => ({ value: s.value, label: s.label }))] },
           { value: filterCategory, onChange: (v: string) => setFilterCategory(v), options: [{ value: 'all', label: '全部分类' }, ...CATEGORIES.map(c => ({ value: c, label: c }))] },
@@ -132,8 +132,8 @@ export default function Sidebar({ tasks, selectedId, onSelect, onAdd, onDelete }
               value={sel.value}
               onChange={e => sel.onChange(e.target.value)}
               style={selStyle}
-              onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)')}
-              onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+              onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(var(--on),0.25)')}
+              onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(var(--on),0.1)')}
             >
               {sel.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
@@ -145,7 +145,7 @@ export default function Sidebar({ tasks, selectedId, onSelect, onAdd, onDelete }
       {/* Task list */}
       <div style={{ flex: 1, overflowY: 'auto' }}>
         {filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', color: '#8a8a9a', fontSize: 12, padding: '24px 0' }}>暂无任务</div>
+          <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: 12, padding: '24px 0' }}>暂无任务</div>
         ) : (
           filtered.map(task => {
             const isSelected = selectedId === task.id
@@ -158,14 +158,14 @@ export default function Sidebar({ tasks, selectedId, onSelect, onAdd, onDelete }
                   padding: '5px 12px 4px 14px',
                   minHeight: 36, boxSizing: 'border-box',
                   cursor: 'pointer',
-                  borderBottom: '1px solid rgba(255,255,255,0.04)',
+                  borderBottom: '1px solid rgba(var(--on),0.04)',
                   display: 'flex', alignItems: 'flex-start', gap: 8,
                   background: isSelected ? 'rgba(94,106,210,0.1)' : 'transparent',
                   transition: 'background 0.1s, opacity 0.1s',
                   opacity: task.status === 'done' ? 0.6 : 1,
                   borderLeft: `3px solid ${isSelected ? '#5e6ad2' : PRIORITY_COLORS[task.priority]}`,
                 }}
-                onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
+                onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'rgba(var(--on),0.04)' }}
                 onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = 'transparent' }}
               >
                 <div style={{ marginTop: 2, flexShrink: 0 }}>
@@ -174,17 +174,17 @@ export default function Sidebar({ tasks, selectedId, onSelect, onAdd, onDelete }
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{
                     fontSize: 13, fontWeight: 500,
-                    color: task.status === 'done' ? '#666680' : PRIORITY_TITLE_COLORS[task.priority],
+                    color: task.status === 'done' ? 'var(--text-faint)' : PRIORITY_TITLE_COLORS[task.priority],
                     textDecoration: task.status === 'done' ? 'line-through' : 'none',
                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                   }}>{task.title}</div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2 }}>
                     <PriorityIcon priority={task.priority} status={task.status} />
-                    <span style={{ fontSize: 11, color: task.status === 'done' ? '#666680' : categoryStyle(task.category).text }}>{task.category}</span>
+                    <span style={{ fontSize: 11, color: task.status === 'done' ? 'var(--text-faint)' : categoryStyle(task.category).text }}>{task.category}</span>
                     {task.deadline && (
                       <span style={{
                         fontSize: 11,
-                        color: new Date(task.deadline) < new Date() && task.status !== 'done' ? '#ff4444' : '#8a8a9a',
+                        color: new Date(task.deadline) < new Date() && task.status !== 'done' ? '#ff4444' : 'var(--text-muted)',
                       }}>· {task.deadline}</span>
                     )}
                   </div>
@@ -192,14 +192,14 @@ export default function Sidebar({ tasks, selectedId, onSelect, onAdd, onDelete }
                 <button
                   onClick={e => { e.stopPropagation(); onDelete(task.id) }}
                   style={{
-                    background: 'none', border: 'none', color: '#8a8a9a',
+                    background: 'none', border: 'none', color: 'var(--text-muted)',
                     cursor: 'pointer', padding: '0 2px', fontSize: 12, lineHeight: 1,
                     opacity: 0, transition: 'opacity 0.1s',
                     flexShrink: 0,
                   }}
                   className="sidebar-delete-btn"
                   onMouseEnter={e => { e.currentTarget.style.color = '#ff4444'; e.currentTarget.style.opacity = '1' }}
-                  onMouseLeave={e => { e.currentTarget.style.color = '#8a8a9a' }}
+                  onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)' }}
                 >✕</button>
               </div>
             )
@@ -214,10 +214,10 @@ export default function Sidebar({ tasks, selectedId, onSelect, onAdd, onDelete }
           onClick={() => setShowForm(false)}
         >
           <div
-            style={{ background: '#1a1a24', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, padding: 20, width: 400, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 24px 48px rgba(0,0,0,0.5)' }}
+            style={{ background: 'var(--bg-card)', border: '1px solid rgba(var(--on),0.1)', borderRadius: 6, padding: 20, width: 400, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 24px 48px rgba(0,0,0,0.5)' }}
             onClick={e => e.stopPropagation()}
           >
-            <div style={{ fontSize: 14, fontWeight: 600, color: '#e2e2e8', marginBottom: 16 }}>新建任务</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', marginBottom: 16 }}>新建任务</div>
             <TaskForm onSubmit={data => { onAdd(data); setShowForm(false) }} onCancel={() => setShowForm(false)} />
           </div>
         </div>

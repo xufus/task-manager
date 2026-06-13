@@ -19,7 +19,7 @@ export default function StatusIcon({ status, size = 14 }: { status: Status; size
   }
   return (
     <svg width={size} height={size} viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0 }}>
-      <circle cx="6" cy="6" r="4.5" stroke="#8a8a9a" strokeWidth="1.5" />
+      <circle cx="6" cy="6" r="4.5" strokeWidth="1.5" style={{ stroke: 'var(--text-muted)' }} />
     </svg>
   )
 }

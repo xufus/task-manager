@@ -19,6 +19,28 @@ export default function App() {
   const [generating, setGenerating] = useState(false)
   const [summary, setSummary] = useState<{ title: string; content: string } | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('dark')
+
+  // Apply theme to <html data-theme>; resolve 'system' and follow OS changes.
+  useEffect(() => {
+    const root = document.documentElement
+    const mq = window.matchMedia('(prefers-color-scheme: dark)')
+    const apply = () => {
+      const t = store.settings.theme
+      const resolved = t === 'system' ? (mq.matches ? 'dark' : 'light') : t
+      root.dataset.theme = resolved
+      setResolvedTheme(resolved)
+    }
+    apply()
+    if (store.settings.theme === 'system') {
+      mq.addEventListener('change', apply)
+      return () => mq.removeEventListener('change', apply)
+    }
+  }, [store.settings.theme])
+
+  function toggleTheme() {
+    store.updateSettings({ theme: resolvedTheme === 'dark' ? 'light' : 'dark' })
+  }
 
   useEffect(() => {
     if (!('Notification' in window)) return
@@ -74,17 +96,19 @@ export default function App() {
     padding: '4px 10px', borderRadius: 6, fontSize: 12, fontWeight: active ? 500 : 400,
     cursor: 'pointer', border: 'none', transition: 'all 0.1s',
     background: active ? 'rgba(94,106,210,0.15)' : 'transparent',
-    color: active ? '#5e6ad2' : '#8a8a9a',
+    color: active ? '#5e6ad2' : 'var(--text-muted)',
   })
 
   return (
-    <div style={{ height: '100vh', width: '100vw', display: 'flex', flexDirection: 'column', background: '#0f0f13', color: '#e2e2e8', overflow: 'hidden' }}>
+    <div style={{ height: '100vh', width: '100vw', display: 'flex', flexDirection: 'column', background: 'var(--bg)', color: 'var(--text)', overflow: 'hidden' }}>
       <StatsBar
         tasks={store.tasks}
         onGenerateSummary={handleGenerateSummary}
         onGenerateWeekly={handleGenerateWeekly}
         generating={generating}
         onOpenSettings={() => setShowSettings(true)}
+        theme={resolvedTheme}
+        onToggleTheme={toggleTheme}
       />
 
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
@@ -100,8 +124,8 @@ export default function App() {
           {/* View tab bar */}
           <div style={{
             display: 'flex', alignItems: 'center', gap: 4, padding: '6px 12px',
-            borderBottom: '1px solid rgba(255,255,255,0.06)',
-            background: '#0f0f13',
+            borderBottom: '1px solid rgba(var(--on),0.06)',
+            background: 'var(--bg)',
           }}>
             <button onClick={() => setMainView('kanban')} style={tabBtn(mainView === 'kanban')}>看板</button>
             {selectedTask && (

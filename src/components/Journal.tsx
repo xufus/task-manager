@@ -45,15 +45,15 @@ export default function Journal({ entries, tasks, activeTaskId, onAdd }: Props) 
     <div style={{
       width: 320, flexShrink: 0, height: '100%',
       display: 'flex', flexDirection: 'column',
-      borderLeft: '1px solid rgba(255,255,255,0.06)',
-      background: '#0a0a0e',
+      borderLeft: '1px solid rgba(var(--on),0.06)',
+      background: 'var(--bg-elevated)',
     }}>
       {/* Header */}
-      <div style={{ padding: '10px 12px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-        <div style={{ fontSize: 14, fontWeight: 600, color: '#8a8a9a', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 2 }}>
+      <div style={{ padding: '10px 12px', borderBottom: '1px solid rgba(var(--on),0.06)' }}>
+        <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 2 }}>
           工作日志
         </div>
-        <div style={{ fontSize: 11, color: activeTask ? '#5e6ad2' : '#8a8a9a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <div style={{ fontSize: 11, color: activeTask ? '#5e6ad2' : 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {activeTask ? `📌 ${activeTask.title}` : '今日记录'}
         </div>
       </div>
@@ -63,13 +63,13 @@ export default function Journal({ entries, tasks, activeTaskId, onAdd }: Props) 
         {displayed.length === 0 ? (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '0 24px' }}>
             <svg width="42" height="42" viewBox="0 0 42 42" fill="none">
-              <rect x="10" y="6" width="22" height="30" rx="3" stroke="rgba(255,255,255,0.12)" strokeWidth="1.6" />
-              <path d="M15 14h12M15 20h12M15 26h7" stroke="rgba(255,255,255,0.12)" strokeWidth="1.6" strokeLinecap="round" />
+              <rect x="10" y="6" width="22" height="30" rx="3" strokeWidth="1.6" style={{ stroke: 'rgba(var(--on),0.12)' }} />
+              <path d="M15 14h12M15 20h12M15 26h7" strokeWidth="1.6" strokeLinecap="round" style={{ stroke: 'rgba(var(--on),0.12)' }} />
             </svg>
-            <div style={{ fontSize: 13, fontWeight: 500, color: '#8a8a9a' }}>
+            <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-muted)' }}>
               {activeTask ? '该任务暂无日志' : '今天还没有记录'}
             </div>
-            <div style={{ fontSize: 12, color: '#666680', textAlign: 'center' }}>
+            <div style={{ fontSize: 12, color: 'var(--text-faint)', textAlign: 'center' }}>
               {activeTask ? '在下方记录该任务的进展' : '在下方记录你的工作进展'}
             </div>
           </div>
@@ -79,7 +79,7 @@ export default function Journal({ entries, tasks, activeTaskId, onAdd }: Props) 
             return (
               <div key={entry.id} style={{
                 padding: '10px 12px',
-                borderBottom: idx < displayed.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+                borderBottom: idx < displayed.length - 1 ? '1px solid rgba(var(--on),0.04)' : 'none',
               }}>
                 {taskTitle && (
                   <span style={{
@@ -91,10 +91,10 @@ export default function Journal({ entries, tasks, activeTaskId, onAdd }: Props) 
                     {taskTitle}
                   </span>
                 )}
-                <div style={{ fontSize: 13, color: '#e2e2e8', whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+                <div style={{ fontSize: 13, color: 'var(--text)', whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
                   {entry.content}
                 </div>
-                <div style={{ fontSize: 11, color: '#666680', marginTop: 5, textAlign: 'right' }}>
+                <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 5, textAlign: 'right' }}>
                   {formatDateTime(entry.createdAt)}
                 </div>
               </div>
@@ -105,7 +105,7 @@ export default function Journal({ entries, tasks, activeTaskId, onAdd }: Props) 
       </div>
 
       {/* Input */}
-      <div style={{ padding: '10px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+      <div style={{ padding: '10px', borderTop: '1px solid rgba(var(--on),0.06)' }}>
         {activeTask && (
           <div style={{ fontSize: 11, color: '#5e6ad2', marginBottom: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             关联到: {activeTask.title}
@@ -119,9 +119,9 @@ export default function Journal({ entries, tasks, activeTaskId, onAdd }: Props) 
           rows={2}
           style={{
             width: '100%', height: 40, borderRadius: 6, padding: '7px 9px', fontSize: 13,
-            background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            color: '#e2e2e8', resize: 'none', lineHeight: 1.5, boxSizing: 'border-box',
+            background: 'rgba(var(--on),0.04)',
+            border: '1px solid rgba(var(--on),0.08)',
+            color: 'var(--text)', resize: 'none', lineHeight: 1.5, boxSizing: 'border-box',
           }}
         />
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 6 }}>

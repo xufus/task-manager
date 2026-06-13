@@ -9,7 +9,7 @@ interface Props {
 }
 
 const PRIORITY_COLORS: Record<Priority, string> = {
-  urgent: '#ff4444', high: '#f5a623', normal: '#5e6ad2', low: '#8a8a9a',
+  urgent: '#ff4444', high: '#f5a623', normal: '#5e6ad2', low: 'var(--text-muted)',
 }
 
 export default function TaskForm({ initial, onSubmit, onCancel }: Props) {
@@ -27,8 +27,8 @@ export default function TaskForm({ initial, onSubmit, onCancel }: Props) {
     onSubmit({ title: title.trim(), description, category, color, priority, status, deadline: deadline || null })
   }
 
-  const label: React.CSSProperties = { fontSize: 11, fontWeight: 500, color: '#8a8a9a', display: 'block', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }
-  const inputStyle: React.CSSProperties = { width: '100%', padding: '6px 10px', borderRadius: 6, fontSize: 13, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', color: '#e2e2e8', boxSizing: 'border-box' }
+  const label: React.CSSProperties = { fontSize: 11, fontWeight: 500, color: 'var(--text-muted)', display: 'block', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }
+  const inputStyle: React.CSSProperties = { width: '100%', padding: '6px 10px', borderRadius: 6, fontSize: 13, background: 'rgba(var(--on),0.04)', border: '1px solid rgba(var(--on),0.1)', color: 'var(--text)', boxSizing: 'border-box' }
   const selectStyle: React.CSSProperties = { ...inputStyle, cursor: 'pointer', appearance: 'none' }
 
   return (
@@ -119,8 +119,8 @@ export default function TaskForm({ initial, onSubmit, onCancel }: Props) {
           type="button" onClick={onCancel}
           style={{
             flex: 1, padding: '7px 0', borderRadius: 6, fontSize: 13,
-            background: 'rgba(255,255,255,0.05)', color: '#8a8a9a',
-            border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer',
+            background: 'rgba(var(--on),0.05)', color: 'var(--text-muted)',
+            border: '1px solid rgba(var(--on),0.08)', cursor: 'pointer',
             transition: 'filter 0.1s',
           }}
           onMouseEnter={e => (e.currentTarget.style.filter = 'brightness(1.2)')}
