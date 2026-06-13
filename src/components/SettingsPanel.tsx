@@ -63,19 +63,6 @@ export default function SettingsPanel({ settings, onUpdate, onClose }: Props) {
             </div>
             <p style={{ margin: '6px 0 0', fontSize: 11, color: 'var(--text-muted)' }}>用于 AI 日报和周报功能，仅保存在本地浏览器</p>
           </div>
-
-          <div>
-            <label style={label}>主题</label>
-            <select
-              value={settings.theme}
-              onChange={e => onUpdate({ theme: e.target.value as AppSettings['theme'] })}
-              style={{ width: '100%', padding: '6px 10px', borderRadius: 6, fontSize: 13, appearance: 'none', background: 'rgba(var(--on),0.04)', border: '1px solid rgba(var(--on),0.1)', color: 'var(--text)', cursor: 'pointer' }}
-            >
-              <option value="system">跟随系统</option>
-              <option value="light">浅色</option>
-              <option value="dark">深色</option>
-            </select>
-          </div>
         </div>
 
         <div style={{ display: 'flex', gap: 8, marginTop: 20 }}>

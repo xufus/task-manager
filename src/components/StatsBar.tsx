@@ -125,8 +125,9 @@ export default function StatsBar({ tasks, onGenerateSummary, onGenerateWeekly, g
           title="设置"
         >
           <svg width="13" height="13" viewBox="0 0 16 16" fill="none" strokeWidth="1.5" strokeLinecap="round" style={{ stroke: 'var(--text-muted)' }}>
-            <circle cx="8" cy="8" r="2.5"/>
-            <path d="M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3.05 3.05l1.06 1.06M11.89 11.89l1.06 1.06M3.05 12.95l1.06-1.06M11.89 4.11l1.06-1.06"/>
+            <path d="M2 5.5h6.7M12.3 5.5H14M2 10.5h1.7M7.3 10.5H14" />
+            <circle cx="10.5" cy="5.5" r="1.8" />
+            <circle cx="5.5" cy="10.5" r="1.8" />
           </svg>
         </button>
       </div>
