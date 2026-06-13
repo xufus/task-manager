@@ -116,6 +116,7 @@ export default function App() {
           tasks={store.tasks}
           categories={store.categories}
           onAddCategory={store.addCategory}
+          onDeleteCategory={store.deleteCategory}
           selectedId={selectedTaskId}
           onSelect={selectTask}
           onAdd={store.addTask}
@@ -169,9 +170,6 @@ export default function App() {
         <SettingsPanel
           settings={store.settings}
           onUpdate={store.updateSettings}
-          categories={store.categories}
-          onAddCategory={store.addCategory}
-          onDeleteCategory={store.deleteCategory}
           onClose={() => setShowSettings(false)}
         />
       )}
