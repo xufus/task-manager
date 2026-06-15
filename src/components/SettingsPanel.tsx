@@ -5,9 +5,11 @@ interface Props {
   settings: AppSettings
   onUpdate: (updates: Partial<AppSettings>) => void
   onClose: () => void
+  username?: string
+  onLogout?: () => void
 }
 
-export default function SettingsPanel({ settings, onUpdate, onClose }: Props) {
+export default function SettingsPanel({ settings, onUpdate, onClose, username, onLogout }: Props) {
   const [apiKey, setApiKey] = useState(settings.apiKey)
   const [showKey, setShowKey] = useState(false)
 
@@ -63,6 +65,24 @@ export default function SettingsPanel({ settings, onUpdate, onClose }: Props) {
             </div>
             <p style={{ margin: '6px 0 0', fontSize: 11, color: 'var(--text-muted)' }}>用于 AI 日报和周报功能，仅保存在本地浏览器</p>
           </div>
+
+          {onLogout && (
+            <div>
+              <label style={label}>账户</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ flex: 1, fontSize: 13, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {username || '已登录'}
+                </span>
+                <button
+                  onClick={onLogout}
+                  style={{
+                    padding: '6px 12px', borderRadius: 6, fontSize: 12, cursor: 'pointer', whiteSpace: 'nowrap',
+                    background: 'rgba(255,68,68,0.08)', border: '1px solid rgba(255,68,68,0.2)', color: '#ff4444',
+                  }}
+                >退出登录</button>
+              </div>
+            </div>
+          )}
         </div>
 
         <div style={{ display: 'flex', gap: 8, marginTop: 20 }}>

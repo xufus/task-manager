@@ -8,11 +8,52 @@ import StatsBar from './components/StatsBar'
 import SummaryModal from './components/SummaryModal'
 import SummaryHistoryModal from './components/SummaryHistoryModal'
 import SettingsPanel from './components/SettingsPanel'
+import LoginPage from './components/LoginPage'
 import { generateDailySummary, generateWeeklyReport } from './ai'
+import { getCurrentUser, logout, type AuthUser } from './cloudbase'
 
 type MainView = 'kanban' | 'detail'
 
+// 登录门禁：未登录显示登录页，登录后才渲染主应用（主应用会读写云数据）。
 export default function App() {
+  const [authReady, setAuthReady] = useState(false)
+  const [user, setUser] = useState<AuthUser | null>(null)
+
+  useEffect(() => {
+    getCurrentUser().then(u => { setUser(u); setAuthReady(true) })
+  }, [])
+
+  // 登录页也需要正确主题：从本地 settings 读取并应用（settings 仍存 localStorage）。
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('settings')
+      const theme = (raw ? JSON.parse(raw).theme : 'system') || 'system'
+      const dark = theme === 'dark' ||
+        (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+      document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+    } catch { /* 忽略 */ }
+  }, [])
+
+  async function handleLogout() {
+    await logout()
+    setUser(null)
+  }
+
+  if (!authReady) {
+    return (
+      <div style={{
+        height: '100vh', width: '100vw', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: 'var(--bg)', color: 'var(--text-muted)', fontSize: 13,
+      }}>加载中…</div>
+    )
+  }
+
+  if (!user) return <LoginPage onAuthed={setUser} />
+
+  return <MainApp username={user.username} onLogout={handleLogout} />
+}
+
+function MainApp({ username, onLogout }: { username: string; onLogout: () => void }) {
   const store = useAppStore()
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
   const [mainView, setMainView] = useState<MainView>('kanban')
@@ -101,6 +142,15 @@ export default function App() {
     color: active ? '#5e6ad2' : 'var(--text-muted)',
   })
 
+  if (store.loading) {
+    return (
+      <div style={{
+        height: '100vh', width: '100vw', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: 'var(--bg)', color: 'var(--text-muted)', fontSize: 13,
+      }}>加载数据中…</div>
+    )
+  }
+
   return (
     <div style={{ height: '100vh', width: '100vw', display: 'flex', flexDirection: 'column', background: 'var(--bg)', color: 'var(--text)', overflow: 'hidden' }}>
       <StatsBar
@@ -174,6 +224,8 @@ export default function App() {
           settings={store.settings}
           onUpdate={store.updateSettings}
           onClose={() => setShowSettings(false)}
+          username={username}
+          onLogout={onLogout}
         />
       )}
 

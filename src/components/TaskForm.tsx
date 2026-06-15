@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import type { Task, Priority, Status } from '../types'
+import type { Task, NewTask, Priority, Status } from '../types'
 import { PRIORITIES, STATUSES, COLORS } from '../constants'
 
 interface Props {
   initial?: Partial<Task>
   categories: string[]
-  onSubmit: (data: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => void
+  onSubmit: (data: NewTask) => void
   onCancel: () => void
 }
 

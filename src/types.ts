@@ -12,7 +12,11 @@ export interface Task {
   deadline: string | null
   createdAt: string
   updatedAt: string
+  order: number
 }
+
+// 新建任务时由 store 自动生成 id/时间戳/order，调用方无需提供这些字段。
+export type NewTask = Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'order'>
 
 export interface JournalEntry {
   id: string

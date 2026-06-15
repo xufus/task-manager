@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import type { Task, Priority, Status } from '../types'
+import type { Task, NewTask, Priority, Status } from '../types'
 import { PRIORITIES, PRIORITY_META, STATUSES, categoryStyle } from '../constants'
 import StatusIcon from './StatusIcon'
 import TaskForm from './TaskForm'
@@ -11,7 +11,7 @@ interface Props {
   onDeleteCategory: (name: string) => void
   selectedId: string | null
   onSelect: (id: string) => void
-  onAdd: (data: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => void
+  onAdd: (data: NewTask) => void
   onDelete: (id: string) => void
 }
 
