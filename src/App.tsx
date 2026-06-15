@@ -140,6 +140,7 @@ export default function App() {
             {mainView === 'kanban' ? (
               <KanbanBoard
                 tasks={store.tasks}
+                categories={store.categories}
                 onUpdateTask={store.updateTask}
                 onReorder={store.reorderTasks}
                 onDeleteTask={store.deleteTask}

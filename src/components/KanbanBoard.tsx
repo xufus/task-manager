@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   DndContext, DragOverlay, closestCorners, PointerSensor,
   useSensor, useSensors, useDroppable, type DragStartEvent, type DragEndEvent
@@ -8,6 +8,11 @@ import { CSS } from '@dnd-kit/utilities'
 import type { Task, Status, Priority } from '../types'
 import { categoryStyle } from '../constants'
 import StatusIcon from './StatusIcon'
+import KanbanToolbar from './KanbanToolbar'
+import {
+  type KanbanFilters, activeFilterCount, matchesFilters, sortTasks,
+  filtersFromParams, filtersToParams,
+} from '../kanbanFilters'
 
 const STATUS_NEXT: Record<Status, Status | null> = {
   todo: 'in_progress', in_progress: 'done', done: null,
@@ -202,25 +207,27 @@ function TaskCard({ task, isExpanded: expanded, onUpdateTask, onDeleteTask, onEx
   )
 }
 
-function EmptyColumn() {
+function EmptyColumn({ filtered }: { filtered: boolean }) {
   const [btnHovered, setBtnHovered] = useState(false)
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, gap: 8, paddingTop: 24 }}>
       <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
         <circle cx="18" cy="18" r="16" strokeWidth="1.5" strokeDasharray="4 3" style={{ stroke: 'rgba(var(--on),0.12)' }} />
       </svg>
-      <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>暂无任务</span>
-      <button
-        onMouseEnter={() => setBtnHovered(true)}
-        onMouseLeave={() => setBtnHovered(false)}
-        style={{
-          marginTop: 4, padding: '5px 14px', borderRadius: 6, fontSize: 12,
-          background: 'transparent',
-          border: btnHovered ? '1px solid rgba(var(--on),0.15)' : '1px solid transparent',
-          color: btnHovered ? 'var(--text)' : 'var(--text-faint)',
-          cursor: 'pointer', transition: 'border-color 0.15s, color 0.15s',
-        }}
-      >+ 添加任务</button>
+      <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>{filtered ? '没有符合条件的任务' : '暂无任务'}</span>
+      {!filtered && (
+        <button
+          onMouseEnter={() => setBtnHovered(true)}
+          onMouseLeave={() => setBtnHovered(false)}
+          style={{
+            marginTop: 4, padding: '5px 14px', borderRadius: 6, fontSize: 12,
+            background: 'transparent',
+            border: btnHovered ? '1px solid rgba(var(--on),0.15)' : '1px solid transparent',
+            color: btnHovered ? 'var(--text)' : 'var(--text-faint)',
+            cursor: 'pointer', transition: 'border-color 0.15s, color 0.15s',
+          }}
+        >+ 添加任务</button>
+      )}
     </div>
   )
 }
@@ -231,8 +238,8 @@ const COLUMN_STYLES: Record<Status, { accent: string; label: string }> = {
   done:        { accent: '#00c853', label: '完成' },
 }
 
-function Column({ status, tasks, expandedId, onUpdateTask, onDeleteTask, onExpand }: {
-  status: Status; tasks: Task[]; expandedId: string | null
+function Column({ status, tasks, expandedId, filtersActive, onUpdateTask, onDeleteTask, onExpand }: {
+  status: Status; tasks: Task[]; expandedId: string | null; filtersActive: boolean
   onUpdateTask: (id: string, updates: Partial<Task>) => void
   onDeleteTask: (id: string) => void
   onExpand: (id: string | null) => void
@@ -259,7 +266,7 @@ function Column({ status, tasks, expandedId, onUpdateTask, onDeleteTask, onExpan
       <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
         <div ref={setNodeRef} style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, overflowY: 'auto', minHeight: 130 }}>
           {tasks.length === 0 ? (
-            <EmptyColumn />
+            <EmptyColumn filtered={filtersActive} />
           ) : (
             tasks.map(t => (
               <TaskCard
@@ -279,15 +286,24 @@ function Column({ status, tasks, expandedId, onUpdateTask, onDeleteTask, onExpan
 
 interface Props {
   tasks: Task[]
+  categories: string[]
   onUpdateTask: (id: string, updates: Partial<Task>) => void
   onReorder: (tasks: Task[]) => void
   onDeleteTask: (id: string) => void
   onTaskExpand: (id: string | null) => void
 }
 
-export default function KanbanBoard({ tasks, onUpdateTask, onReorder, onDeleteTask, onTaskExpand }: Props) {
+export default function KanbanBoard({ tasks, categories, onUpdateTask, onReorder, onDeleteTask, onTaskExpand }: Props) {
   const [activeId, setActiveId] = useState<string | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [filters, setFilters] = useState<KanbanFilters>(() => filtersFromParams(new URLSearchParams(window.location.search)))
+
+  // 筛选/排序状态持久化到 URL（replaceState，不新增历史记录）。
+  useEffect(() => {
+    const qs = filtersToParams(filters).toString()
+    const url = window.location.pathname + (qs ? `?${qs}` : '') + window.location.hash
+    window.history.replaceState(null, '', url)
+  }, [filters])
 
   function handleExpand(id: string | null) {
     setExpandedId(id)
@@ -300,7 +316,14 @@ export default function KanbanBoard({ tasks, onUpdateTask, onReorder, onDeleteTa
     { status: 'todo' }, { status: 'in_progress' }, { status: 'done' },
   ]
 
+  const filtersActive = activeFilterCount(filters) > 0
+  // 仅默认排序且无激活筛选时，列内拖拽重排才安全（否则会丢失被隐藏任务/打乱真实顺序）。
+  const reorderEnabled = filters.sort === 'default' && !filtersActive
+
+  // 拖拽用的真实同列顺序（未排序未筛选）。
   const byStatus = (s: Status) => tasks.filter(t => t.status === s)
+  // 渲染用的可见任务（筛选 + 排序）。
+  const visible = (s: Status) => sortTasks(byStatus(s).filter(t => matchesFilters(t, filters)), filters.sort)
 
   function handleDragStart(e: DragStartEvent) { setActiveId(e.active.id as string) }
 
@@ -322,6 +345,8 @@ export default function KanbanBoard({ tasks, onUpdateTask, onReorder, onDeleteTa
     if (!overTask) return
 
     if (activeTask.status === overTask.status) {
+      // 排序/筛选激活时禁用列内重排，避免基于可见子集重写完整顺序导致丢任务。
+      if (!reorderEnabled) return
       const colTasks = byStatus(activeTask.status)
       const oldIdx = colTasks.findIndex(t => t.id === active.id)
       const newIdx = colTasks.findIndex(t => t.id === over.id)
@@ -337,20 +362,23 @@ export default function KanbanBoard({ tasks, onUpdateTask, onReorder, onDeleteTa
   const activeTask = activeId ? tasks.find(t => t.id === activeId) : null
 
   return (
-    <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <div style={{ display: 'flex', gap: 16, height: '100%', alignItems: 'flex-start', overflow: 'hidden' }}>
-        {columns.map(col => (
-          <Column
-            key={col.status} status={col.status}
-            tasks={byStatus(col.status)}
-            expandedId={expandedId}
-            onUpdateTask={onUpdateTask}
-            onDeleteTask={onDeleteTask}
-            onExpand={handleExpand}
-          />
-        ))}
-      </div>
-      <DragOverlay>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: 8 }}>
+      <KanbanToolbar filters={filters} onChange={setFilters} categories={categories} />
+      <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        <div style={{ flex: 1, display: 'flex', gap: 16, minHeight: 0, alignItems: 'flex-start', overflow: 'hidden' }}>
+          {columns.map(col => (
+            <Column
+              key={col.status} status={col.status}
+              tasks={visible(col.status)}
+              expandedId={expandedId}
+              filtersActive={filtersActive}
+              onUpdateTask={onUpdateTask}
+              onDeleteTask={onDeleteTask}
+              onExpand={handleExpand}
+            />
+          ))}
+        </div>
+        <DragOverlay>
         {activeTask && (
           <div style={{
             background: 'var(--bg-card)', border: '1px solid rgba(94,106,210,0.5)',
@@ -360,7 +388,8 @@ export default function KanbanBoard({ tasks, onUpdateTask, onReorder, onDeleteTa
             <div style={{ fontSize: 13, color: 'var(--text)' }}>{activeTask.title}</div>
           </div>
         )}
-      </DragOverlay>
-    </DndContext>
+        </DragOverlay>
+      </DndContext>
+    </div>
   )
 }
