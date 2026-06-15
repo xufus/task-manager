@@ -96,3 +96,34 @@ select option {
   background: var(--bg-card);
   color: var(--text);
 }
+
+/* ── Markdown report rendering (SummaryModal) ──────────────────────
+   Used for AI 日报/周报 content. Section headings (##) get a top divider
+   so chapters are visually separated; first heading has none. */
+.md {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.75;
+}
+.md > :first-child { margin-top: 0; }
+.md h1, .md h2, .md h3 { color: var(--text); line-height: 1.4; }
+.md h1 { font-size: 16px; font-weight: 700; margin: 0 0 12px; }
+.md h2 {
+  font-size: 15px; font-weight: 600; margin: 18px 0 10px;
+  padding-top: 14px; border-top: 1px solid rgba(var(--on), 0.1);
+}
+.md h2:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+.md h3 { font-size: 13.5px; font-weight: 600; margin: 14px 0 8px; }
+.md p { margin: 8px 0; }
+.md ul, .md ol { margin: 8px 0; padding-left: 20px; }
+.md li { margin: 4px 0; }
+.md li::marker { color: var(--text-faint); }
+.md strong { color: var(--text); font-weight: 600; }
+.md hr { border: none; border-top: 1px solid rgba(var(--on), 0.1); margin: 16px 0; }
+.md code {
+  background: rgba(var(--on), 0.06); padding: 1px 5px;
+  border-radius: 4px; font-size: 12px;
+}
+.md a { color: var(--accent); }
+.md table { border-collapse: collapse; margin: 8px 0; font-size: 12px; }
+.md th, .md td { border: 1px solid rgba(var(--on), 0.12); padding: 5px 9px; text-align: left; }

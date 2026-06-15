@@ -4,7 +4,7 @@ import type { DailySummary, WeeklySummary } from '../types'
 interface Props {
   dailySummaries: DailySummary[]
   weeklySummaries: WeeklySummary[]
-  onView: (title: string, content: string) => void
+  onView: (title: string, content: string, time?: string) => void
   onClose: () => void
 }
 
@@ -71,7 +71,7 @@ export default function SummaryHistoryModal({ dailySummaries, weeklySummaries, o
             rows.map(r => (
               <div
                 key={r.key}
-                onClick={() => onView(r.title, r.content)}
+                onClick={() => onView(r.title, r.content, r.sub)}
                 style={{ padding: '10px 12px', borderRadius: 6, cursor: 'pointer', transition: 'background 0.1s' }}
                 onMouseEnter={e => (e.currentTarget.style.background = 'rgba(var(--on),0.05)')}
                 onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}

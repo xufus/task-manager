@@ -60,7 +60,7 @@ function MainApp({ username, onLogout }: { username: string; onLogout: () => voi
   const [showSettings, setShowSettings] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
   const [generating, setGenerating] = useState(false)
-  const [summary, setSummary] = useState<{ title: string; content: string } | null>(null)
+  const [summary, setSummary] = useState<{ title: string; content: string; time?: string } | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('dark')
 
@@ -115,7 +115,7 @@ function MainApp({ username, onLogout }: { username: string; onLogout: () => voi
       const content = await generateDailySummary(store.settings.apiKey, store.tasks, store.journalEntries)
       const today = new Date().toLocaleDateString('zh-CN')
       store.addDailySummary({ date: today, content })
-      setSummary({ title: `${today} 工作日报`, content })
+      setSummary({ title: `${today} 工作日报`, content, time: new Date().toLocaleString('zh-CN') })
     } catch (e) { setError(`生成失败: ${(e as Error).message}`) }
     finally { setGenerating(false) }
   }
@@ -128,7 +128,7 @@ function MainApp({ username, onLogout }: { username: string; onLogout: () => voi
       const now = new Date()
       const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
       store.addWeeklySummary({ weekStart: weekAgo.toLocaleDateString('zh-CN'), weekEnd: now.toLocaleDateString('zh-CN'), content })
-      setSummary({ title: '本周工作周报', content })
+      setSummary({ title: '本周工作周报', content, time: new Date().toLocaleString('zh-CN') })
     } catch (e) { setError(`生成失败: ${(e as Error).message}`) }
     finally { setGenerating(false) }
   }
@@ -233,7 +233,7 @@ function MainApp({ username, onLogout }: { username: string; onLogout: () => voi
         <SummaryHistoryModal
           dailySummaries={store.dailySummaries}
           weeklySummaries={store.weeklySummaries}
-          onView={(title, content) => { setSummary({ title, content }); setShowHistory(false) }}
+          onView={(title, content, time) => { setSummary({ title, content, time }); setShowHistory(false) }}
           onClose={() => setShowHistory(false)}
         />
       )}
