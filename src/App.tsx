@@ -6,6 +6,7 @@ import Journal from './components/Journal'
 import TaskDetail from './components/TaskDetail'
 import StatsBar from './components/StatsBar'
 import SummaryModal from './components/SummaryModal'
+import SummaryHistoryModal from './components/SummaryHistoryModal'
 import SettingsPanel from './components/SettingsPanel'
 import { generateDailySummary, generateWeeklyReport } from './ai'
 
@@ -16,6 +17,7 @@ export default function App() {
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
   const [mainView, setMainView] = useState<MainView>('kanban')
   const [showSettings, setShowSettings] = useState(false)
+  const [showHistory, setShowHistory] = useState(false)
   const [generating, setGenerating] = useState(false)
   const [summary, setSummary] = useState<{ title: string; content: string } | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -106,6 +108,7 @@ export default function App() {
         onGenerateSummary={handleGenerateSummary}
         onGenerateWeekly={handleGenerateWeekly}
         generating={generating}
+        onOpenHistory={() => setShowHistory(true)}
         onOpenSettings={() => setShowSettings(true)}
         theme={resolvedTheme}
         onToggleTheme={toggleTheme}
@@ -171,6 +174,15 @@ export default function App() {
           settings={store.settings}
           onUpdate={store.updateSettings}
           onClose={() => setShowSettings(false)}
+        />
+      )}
+
+      {showHistory && (
+        <SummaryHistoryModal
+          dailySummaries={store.dailySummaries}
+          weeklySummaries={store.weeklySummaries}
+          onView={(title, content) => { setSummary({ title, content }); setShowHistory(false) }}
+          onClose={() => setShowHistory(false)}
         />
       )}
 

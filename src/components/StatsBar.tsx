@@ -5,12 +5,13 @@ interface Props {
   onGenerateSummary: () => void
   onGenerateWeekly: () => void
   generating: boolean
+  onOpenHistory: () => void
   onOpenSettings: () => void
   theme: 'light' | 'dark'
   onToggleTheme: () => void
 }
 
-export default function StatsBar({ tasks, onGenerateSummary, onGenerateWeekly, generating, onOpenSettings, theme, onToggleTheme }: Props) {
+export default function StatsBar({ tasks, onGenerateSummary, onGenerateWeekly, generating, onOpenHistory, onOpenSettings, theme, onToggleTheme }: Props) {
   const total = tasks.length
   const done = tasks.filter(t => t.status === 'done').length
   const inProgress = tasks.filter(t => t.status === 'in_progress').length
@@ -99,6 +100,18 @@ export default function StatsBar({ tasks, onGenerateSummary, onGenerateWeekly, g
           onMouseEnter={e => (e.currentTarget.style.filter = 'brightness(1.2)')}
           onMouseLeave={e => (e.currentTarget.style.filter = 'none')}
         >{generating ? '生成中…' : 'AI 周报'}</button>
+        <button
+          onClick={onOpenHistory}
+          style={{ ...btnBase, display: 'flex', alignItems: 'center' }}
+          onMouseEnter={e => (e.currentTarget.style.filter = 'brightness(1.3)')}
+          onMouseLeave={e => (e.currentTarget.style.filter = 'none')}
+          title="历史报告"
+        >
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ stroke: 'var(--text-muted)' }}>
+            <path d="M8 4v4l2.5 1.5" />
+            <path d="M2.5 8a5.5 5.5 0 1 0 1.6-3.9M2.5 2.5v2.2h2.2" />
+          </svg>
+        </button>
         <button
           onClick={onToggleTheme}
           style={{ ...btnBase, display: 'flex', alignItems: 'center' }}

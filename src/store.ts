@@ -61,12 +61,19 @@ export function useAppStore() {
     setJournalEntries(prev => [...prev, { ...entry, id: crypto.randomUUID(), createdAt: new Date().toISOString() }])
   }, [setJournalEntries])
 
+  // 同一天重复生成则覆盖既有记录（按 date 去重），不再堆叠。
   const addDailySummary = useCallback((summary: Omit<DailySummary, 'id' | 'generatedAt'>) => {
-    setDailySummaries(prev => [...prev, { ...summary, id: crypto.randomUUID(), generatedAt: new Date().toISOString() }])
+    const record: DailySummary = { ...summary, id: crypto.randomUUID(), generatedAt: new Date().toISOString() }
+    setDailySummaries(prev => [...prev.filter(s => s.date !== record.date), record])
   }, [setDailySummaries])
 
+  // 同一周区间重复生成则覆盖（按 weekStart+weekEnd 去重）。
   const addWeeklySummary = useCallback((summary: Omit<WeeklySummary, 'id' | 'generatedAt'>) => {
-    setWeeklySummaries(prev => [...prev, { ...summary, id: crypto.randomUUID(), generatedAt: new Date().toISOString() }])
+    const record: WeeklySummary = { ...summary, id: crypto.randomUUID(), generatedAt: new Date().toISOString() }
+    setWeeklySummaries(prev => [
+      ...prev.filter(s => !(s.weekStart === record.weekStart && s.weekEnd === record.weekEnd)),
+      record,
+    ])
   }, [setWeeklySummaries])
 
   const updateSettings = useCallback((updates: Partial<AppSettings>) => {

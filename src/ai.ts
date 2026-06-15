@@ -36,7 +36,8 @@ export async function generateDailySummary(
 
   const todayEntries = journalEntries.filter(e => new Date(e.createdAt).toDateString() === todayDate)
   const activeTasks = tasks.filter(t => t.status !== 'done')
-  const doneTasks = tasks.filter(t => t.status === 'done')
+  // 仅统计「今日」完成的任务（按 updatedAt 落在今天），避免把历史已完成任务算进今日。
+  const doneTasks = tasks.filter(t => t.status === 'done' && new Date(t.updatedAt).toDateString() === todayDate)
 
   const prompt = `你是一个工作助手。请根据以下信息生成今日（${today}）工作日报。
 
@@ -44,7 +45,7 @@ export async function generateDailySummary(
 - 待办/进行中任务（${activeTasks.length}个）：
 ${activeTasks.map(t => `  - [${t.status === 'in_progress' ? '进行中' : '待办'}] ${t.title}（${PRIORITY_META[t.priority].label}）${t.deadline ? `，截止${t.deadline}` : ''}`).join('\n') || '  无'}
 
-- 已完成任务（${doneTasks.length}个）：
+- 今日已完成任务（${doneTasks.length}个）：
 ${doneTasks.map(t => `  - ${t.title}`).join('\n') || '  无'}
 
 ## 今日日志记录（${todayEntries.length}条）
