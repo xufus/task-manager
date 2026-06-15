@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { Task, JournalEntry, DailySummary, WeeklySummary, AppSettings } from './types'
-import { DEFAULT_CATEGORIES } from './constants'
+import { DEFAULT_CATEGORIES, LEGACY_PRIORITY } from './constants'
 
 function useLocalStorage<T>(key: string, initial: T) {
   const [value, setValue] = useState<T>(() => {
@@ -26,6 +26,19 @@ export function useAppStore() {
   const [weeklySummaries, setWeeklySummaries] = useLocalStorage<WeeklySummary[]>('weeklySummaries', [])
   const [settings, setSettings] = useLocalStorage<AppSettings>('settings', { apiKey: '', theme: 'system' })
   const [categories, setCategories] = useLocalStorage<string[]>('categories', DEFAULT_CATEGORIES)
+
+  // 一次性迁移旧优先级（紧急/高/中/低 → P0/P1/P2/P3）。
+  useEffect(() => {
+    setTasks(prev => {
+      let changed = false
+      const next = prev.map(t => {
+        const mapped = LEGACY_PRIORITY[t.priority as string]
+        if (mapped) { changed = true; return { ...t, priority: mapped } }
+        return t
+      })
+      return changed ? next : prev
+    })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const addTask = useCallback((task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
     const now = new Date().toISOString()

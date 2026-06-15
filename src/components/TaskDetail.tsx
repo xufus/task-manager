@@ -3,6 +3,7 @@ import type { Task } from '../types'
 import { STATUSES } from '../constants'
 import TaskForm from './TaskForm'
 import StatusIcon from './StatusIcon'
+import PriorityTag from './PriorityTag'
 
 interface Props {
   task: Task | null
@@ -10,13 +11,6 @@ interface Props {
   onUpdate: (id: string, updates: Partial<Task>) => void
   onDelete: (id: string) => void
   onClose: () => void
-}
-
-const PRIORITY_COLORS: Record<string, string> = {
-  urgent: '#ff4444', high: '#f5a623', normal: '#5e6ad2', low: 'var(--text-muted)',
-}
-const PRIORITY_LABELS: Record<string, string> = {
-  urgent: '紧急', high: '高', normal: '普通', low: '低',
 }
 
 export default function TaskDetail({ task, categories, onUpdate, onDelete, onClose }: Props) {
@@ -109,11 +103,8 @@ export default function TaskDetail({ task, categories, onUpdate, onDelete, onClo
 
           <div style={metaBlock}>
             <div style={metaLabel}>优先级</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ width: 7, height: 7, borderRadius: '50%', background: PRIORITY_COLORS[task.priority], flexShrink: 0 }} />
-              <span style={{ fontSize: 13, fontWeight: 500, color: PRIORITY_COLORS[task.priority] }}>
-                {PRIORITY_LABELS[task.priority]}
-              </span>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <PriorityTag priority={task.priority} />
             </div>
           </div>
 

@@ -1,4 +1,5 @@
 import type { Task, JournalEntry } from './types'
+import { PRIORITY_META } from './constants'
 
 async function callClaude(apiKey: string, prompt: string): Promise<string> {
   const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -41,7 +42,7 @@ export async function generateDailySummary(
 
 ## 任务状态
 - 待办/进行中任务（${activeTasks.length}个）：
-${activeTasks.map(t => `  - [${t.status === 'in_progress' ? '进行中' : '待办'}] ${t.title}（${t.priority}优先级）${t.deadline ? `，截止${t.deadline}` : ''}`).join('\n') || '  无'}
+${activeTasks.map(t => `  - [${t.status === 'in_progress' ? '进行中' : '待办'}] ${t.title}（${PRIORITY_META[t.priority].label}）${t.deadline ? `，截止${t.deadline}` : ''}`).join('\n') || '  无'}
 
 - 已完成任务（${doneTasks.length}个）：
 ${doneTasks.map(t => `  - ${t.title}`).join('\n') || '  无'}
@@ -74,7 +75,7 @@ export async function generateWeeklyReport(
   const prompt = `你是一个工作助手。请根据以下信息生成本周工作周报（${weekAgo.toLocaleDateString('zh-CN')} ~ ${now.toLocaleDateString('zh-CN')}）。
 
 ## 本周完成任务（${completedThisWeek.length}个）
-${completedThisWeek.map(t => `- ${t.title}（${t.category}，${t.priority}优先级）`).join('\n') || '无'}
+${completedThisWeek.map(t => `- ${t.title}（${t.category}，${PRIORITY_META[t.priority].label}）`).join('\n') || '无'}
 
 ## 当前任务状态
 - 进行中：${tasks.filter(t => t.status === 'in_progress').length}个

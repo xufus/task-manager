@@ -9,16 +9,15 @@ interface Props {
   onCancel: () => void
 }
 
-const PRIORITY_COLORS: Record<Priority, string> = {
-  urgent: '#ff4444', high: '#f5a623', normal: '#5e6ad2', low: 'var(--text-muted)',
-}
+// 四象限优先级的取色，用于「优先级颜色」预设色板。
+const PRIORITY_COLORS = PRIORITIES.map(p => p.color)
 
 export default function TaskForm({ initial, categories, onSubmit, onCancel }: Props) {
   const [title, setTitle] = useState(initial?.title ?? '')
   const [description, setDescription] = useState(initial?.description ?? '')
   const [category, setCategory] = useState(initial?.category ?? categories[0] ?? '')
   const [color, setColor] = useState(initial?.color ?? COLORS[5])
-  const [priority, setPriority] = useState<Priority>(initial?.priority ?? 'normal')
+  const [priority, setPriority] = useState<Priority>(initial?.priority ?? 'p1')
   const [status, setStatus] = useState<Status>(initial?.status ?? 'todo')
   const [deadline, setDeadline] = useState(initial?.deadline ?? '')
 
@@ -62,7 +61,7 @@ export default function TaskForm({ initial, categories, onSubmit, onCancel }: Pr
         <div>
           <label style={label}>优先级</label>
           <select style={selectStyle} value={priority} onChange={e => setPriority(e.target.value as Priority)}>
-            {PRIORITIES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+            {PRIORITIES.map(p => <option key={p.value} value={p.value}>{p.short}: {p.label}</option>)}
           </select>
         </div>
       </div>
@@ -85,8 +84,8 @@ export default function TaskForm({ initial, categories, onSubmit, onCancel }: Pr
       <div>
         <label style={label}>优先级颜色</label>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          {Object.entries(PRIORITY_COLORS).map(([key, c]) => (
-            <button key={key} type="button" onClick={() => setColor(c)}
+          {PRIORITY_COLORS.map(c => (
+            <button key={c} type="button" onClick={() => setColor(c)}
               style={{
                 width: 22, height: 22, borderRadius: '50%', background: c, border: 'none', cursor: 'pointer',
                 outline: color === c ? `2px solid ${c}` : 'none',
@@ -95,7 +94,7 @@ export default function TaskForm({ initial, categories, onSubmit, onCancel }: Pr
                 transition: 'transform 0.1s',
               }} />
           ))}
-          {COLORS.filter(c => !Object.values(PRIORITY_COLORS).includes(c)).map(c => (
+          {COLORS.filter(c => !PRIORITY_COLORS.includes(c)).map(c => (
             <button key={c} type="button" onClick={() => setColor(c)}
               style={{
                 width: 22, height: 22, borderRadius: '50%', background: c, border: 'none', cursor: 'pointer',

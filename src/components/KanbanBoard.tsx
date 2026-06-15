@@ -5,9 +5,10 @@ import {
 } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import type { Task, Status, Priority } from '../types'
-import { categoryStyle } from '../constants'
+import type { Task, Status } from '../types'
+import { categoryStyle, PRIORITY_META } from '../constants'
 import StatusIcon from './StatusIcon'
+import PriorityTag from './PriorityTag'
 import KanbanToolbar from './KanbanToolbar'
 import {
   type KanbanFilters, activeFilterCount, matchesFilters, sortTasks,
@@ -22,13 +23,6 @@ const STATUS_PREV: Record<Status, Status | null> = {
 }
 const STATUS_NEXT_LABEL: Record<Status, string> = {
   todo: '开始', in_progress: '完成', done: '',
-}
-
-const PRIORITY_COLORS: Record<Priority, string> = {
-  urgent: '#ff4444', high: '#f5a623', normal: '#5e6ad2', low: 'var(--text-muted)',
-}
-const PRIORITY_LABELS: Record<Priority, string> = {
-  urgent: '紧急', high: '高', normal: '普通', low: '低',
 }
 
 interface CardProps {
@@ -59,7 +53,7 @@ function TaskCard({ task, isExpanded: expanded, onUpdateTask, onDeleteTask, onEx
         ...style,
         background: 'var(--bg-card)',
         border: `1px solid ${borderColor}`,
-        borderLeft: `3px solid ${PRIORITY_COLORS[task.priority]}`,
+        borderLeft: `3px solid ${PRIORITY_META[task.priority].color}`,
         borderRadius: 6,
         cursor: isDragging ? 'grabbing' : 'grab',
         userSelect: 'none',
@@ -93,7 +87,7 @@ function TaskCard({ task, isExpanded: expanded, onUpdateTask, onDeleteTask, onEx
                   {task.description}
                 </span>
               )}
-              <span style={{ width: 5, height: 5, borderRadius: '50%', background: PRIORITY_COLORS[task.priority], flexShrink: 0 }} />
+              <PriorityTag priority={task.priority} style={{ padding: '1px 6px', fontSize: 11, flexShrink: 0 }} />
               {(() => {
                 const cs = categoryStyle(task.category)
                 return (
@@ -143,9 +137,7 @@ function TaskCard({ task, isExpanded: expanded, onUpdateTask, onDeleteTask, onEx
             </div>
             <div style={{ padding: '6px 8px', background: 'rgba(var(--on),0.03)', borderRadius: 6, border: '1px solid rgba(var(--on),0.06)' }}>
               <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 3 }}>优先级</div>
-              <div style={{ fontSize: 12, fontWeight: 500, color: PRIORITY_COLORS[task.priority] }}>
-                {PRIORITY_LABELS[task.priority]}
-              </div>
+              <PriorityTag priority={task.priority} />
             </div>
             {task.deadline && (
               <div style={{

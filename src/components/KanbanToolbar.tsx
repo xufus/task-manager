@@ -1,20 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
 import type { Priority } from '../types'
-import { categoryStyle } from '../constants'
+import { categoryStyle, PRIORITIES } from '../constants'
+import PriorityTag from './PriorityTag'
 import {
   type KanbanFilters, type SortKey, type DueFilter,
   EMPTY_FILTERS, activeFilterCount,
 } from '../kanbanFilters'
-
-const PRIORITY_COLORS: Record<Priority, string> = {
-  urgent: '#ff4444', high: '#f5a623', normal: '#5e6ad2', low: 'var(--text-muted)',
-}
-const PRIORITY_OPTIONS: { value: Priority; label: string }[] = [
-  { value: 'urgent', label: '紧急' },
-  { value: 'high', label: '高' },
-  { value: 'normal', label: '普通' },
-  { value: 'low', label: '低' },
-]
 const DUE_OPTIONS: { value: DueFilter; label: string }[] = [
   { value: 'all', label: '全部' },
   { value: 'today', label: '今天到期' },
@@ -137,14 +128,13 @@ export default function KanbanToolbar({ filters, onChange, categories }: {
             boxShadow: '0 12px 32px rgba(0,0,0,0.35)', padding: 4, maxHeight: 380, overflowY: 'auto',
           }}>
             <div style={sectionLabel}>优先级</div>
-            {PRIORITY_OPTIONS.map(p => {
+            {PRIORITIES.map(p => {
               const on = filters.priorities.includes(p.value)
               return (
                 <div key={p.value} onClick={() => togglePriority(p.value)} style={rowStyle}
                   onMouseEnter={hoverOn} onMouseLeave={hoverOff}>
-                  <Check on={on} color="#5e6ad2" />
-                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: PRIORITY_COLORS[p.value], flexShrink: 0 }} />
-                  <span style={{ color: 'var(--text)' }}>{p.label}</span>
+                  <Check on={on} color={p.color} />
+                  <PriorityTag priority={p.value} />
                 </div>
               )
             })}

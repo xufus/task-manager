@@ -26,10 +26,10 @@ export const EMPTY_FILTERS: KanbanFilters = {
 }
 
 export const PRIORITY_RANK: Record<Priority, number> = {
-  urgent: 3, high: 2, normal: 1, low: 0,
+  p0: 3, p1: 2, p2: 1, p3: 0,
 }
 
-const VALID_PRIORITIES: Priority[] = ['urgent', 'high', 'normal', 'low']
+const VALID_PRIORITIES: Priority[] = ['p0', 'p1', 'p2', 'p3']
 const VALID_DUE: DueFilter[] = ['all', 'today', 'week', 'overdue']
 const VALID_SORT: SortKey[] = [
   'default', 'priority-desc', 'priority-asc',

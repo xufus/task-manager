@@ -29,10 +29,10 @@
   --lin-hover:     rgba(var(--on), 0.04);
   --lin-active:    rgba(94, 106, 210, 0.12);
 
-  --pri-urgent: #ff4444;
-  --pri-high:   #f5a623;
-  --pri-normal: #5e6ad2;
-  --pri-low:    #8a8a9a;
+  --pri-p0: #ff4444;
+  --pri-p1: #5e6ad2;
+  --pri-p2: #f5a623;
+  --pri-p3: #5a9e5a;
 
   --st-todo:     #8a8a9a;
   --st-progress: #5e6ad2;

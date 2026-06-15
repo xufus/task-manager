@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import type { Task, Priority, Status } from '../types'
-import { PRIORITIES, STATUSES, categoryStyle } from '../constants'
+import { PRIORITIES, PRIORITY_META, STATUSES, categoryStyle } from '../constants'
 import StatusIcon from './StatusIcon'
 import TaskForm from './TaskForm'
 
@@ -123,11 +123,9 @@ function CategoryFilter({ value, onChange, categories, onAddCategory, onDeleteCa
   )
 }
 
-const PRIORITY_COLORS: Record<Priority, string> = {
-  urgent: '#ff4444', high: '#f5a623', normal: '#5e6ad2', low: 'var(--text-muted)',
-}
+// 任务标题色：P0 用偏亮的红，其余沿用各象限主色，P3 用克制的灰避免过艳。
 const PRIORITY_TITLE_COLORS: Record<Priority, string> = {
-  urgent: '#ff6b6b', high: '#f5a623', normal: 'var(--text)', low: 'var(--text-muted)',
+  p0: '#ff6b6b', p1: '#7b8ce8', p2: '#f5a623', p3: 'var(--text-muted)',
 }
 function PriorityIcon({ priority, status }: { priority: Priority; status: Status }) {
   if (status === 'done') return (
@@ -135,24 +133,24 @@ function PriorityIcon({ priority, status }: { priority: Priority; status: Status
       <path d="M1 5l3.5 3.5L11 1" stroke="#00c853" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   )
-  if (priority === 'urgent') return (
+  if (priority === 'p0') return (
     <svg width="8" height="8" viewBox="0 0 8 8" style={{ flexShrink: 0 }}>
       <circle cx="4" cy="4" r="4" fill="#ff4444"/>
     </svg>
   )
-  if (priority === 'high') return (
-    <svg width="10" height="9" viewBox="0 0 10 9" style={{ flexShrink: 0 }}>
-      <polygon points="5,0 10,9 0,9" fill="#f5a623"/>
-    </svg>
-  )
-  if (priority === 'normal') return (
+  if (priority === 'p1') return (
     <svg width="8" height="8" viewBox="0 0 8 8" style={{ flexShrink: 0 }}>
       <circle cx="4" cy="4" r="4" fill="#5e6ad2"/>
     </svg>
   )
+  if (priority === 'p2') return (
+    <svg width="10" height="9" viewBox="0 0 10 9" style={{ flexShrink: 0 }}>
+      <polygon points="5,0 10,9 0,9" fill="#f5a623"/>
+    </svg>
+  )
   return (
     <svg width="8" height="8" viewBox="0 0 8 8" fill="none" style={{ flexShrink: 0 }}>
-      <circle cx="4" cy="4" r="3" strokeWidth="1.5" style={{ stroke: 'var(--text-muted)' }}/>
+      <circle cx="4" cy="4" r="3" strokeWidth="1.5" style={{ stroke: '#5a9e5a' }}/>
     </svg>
   )
 }
@@ -265,7 +263,7 @@ export default function Sidebar({ tasks, categories, onAddCategory, onDeleteCate
             onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(var(--on),0.1)')}
           >
             <option value="all">全部优先级</option>
-            {PRIORITIES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+            {PRIORITIES.map(p => <option key={p.value} value={p.value}>{p.short}: {p.label}</option>)}
           </select>
           <ChevronDown />
         </div>
@@ -292,7 +290,7 @@ export default function Sidebar({ tasks, categories, onAddCategory, onDeleteCate
                   background: isSelected ? 'rgba(94,106,210,0.1)' : 'transparent',
                   transition: 'background 0.1s, opacity 0.1s',
                   opacity: task.status === 'done' ? 0.6 : 1,
-                  borderLeft: `3px solid ${isSelected ? '#5e6ad2' : PRIORITY_COLORS[task.priority]}`,
+                  borderLeft: `3px solid ${isSelected ? '#5e6ad2' : PRIORITY_META[task.priority].color}`,
                 }}
                 onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'rgba(var(--on),0.04)' }}
                 onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = 'transparent' }}

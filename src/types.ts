@@ -1,4 +1,4 @@
-export type Priority = 'urgent' | 'high' | 'normal' | 'low'
+export type Priority = 'p0' | 'p1' | 'p2' | 'p3'
 export type Status = 'todo' | 'in_progress' | 'done'
 
 export interface Task {
