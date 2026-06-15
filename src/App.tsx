@@ -68,7 +68,7 @@ export default function App() {
   }
 
   async function handleGenerateSummary() {
-    if (!store.settings.apiKey) { setError('请先在设置中填入 Claude API Key'); return }
+    if (!store.settings.apiKey) { setError('请先在设置中填入 DeepSeek API Key'); return }
     setGenerating(true)
     try {
       const content = await generateDailySummary(store.settings.apiKey, store.tasks, store.journalEntries)
@@ -80,7 +80,7 @@ export default function App() {
   }
 
   async function handleGenerateWeekly() {
-    if (!store.settings.apiKey) { setError('请先在设置中填入 Claude API Key'); return }
+    if (!store.settings.apiKey) { setError('请先在设置中填入 DeepSeek API Key'); return }
     setGenerating(true)
     try {
       const content = await generateWeeklyReport(store.settings.apiKey, store.tasks, store.journalEntries)

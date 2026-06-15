@@ -43,13 +43,13 @@ export default function SettingsPanel({ settings, onUpdate, onClose }: Props) {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
-            <label style={label}>Claude API Key</label>
+            <label style={label}>DeepSeek API Key</label>
             <div style={{ display: 'flex', gap: 6 }}>
               <input
                 type={showKey ? 'text' : 'password'}
                 value={apiKey}
                 onChange={e => setApiKey(e.target.value)}
-                placeholder="sk-ant-..."
+                placeholder="sk-..."
                 style={inputStyle}
               />
               <button

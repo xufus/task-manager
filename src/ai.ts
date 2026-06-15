@@ -1,17 +1,16 @@
 import type { Task, JournalEntry } from './types'
 import { PRIORITY_META } from './constants'
 
-async function callClaude(apiKey: string, prompt: string): Promise<string> {
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
+// DeepSeek 采用 OpenAI 兼容接口（chat/completions）。
+async function callLLM(apiKey: string, prompt: string): Promise<string> {
+  const res = await fetch('https://api.deepseek.com/chat/completions', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true',
+      'Authorization': `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-6',
+      model: 'deepseek-chat',
       max_tokens: 1500,
       messages: [{ role: 'user', content: prompt }],
     }),
@@ -22,8 +21,8 @@ async function callClaude(apiKey: string, prompt: string): Promise<string> {
     throw new Error((err as { error?: { message?: string } }).error?.message ?? `HTTP ${res.status}`)
   }
 
-  const data = await res.json() as { content: { type: string; text: string }[] }
-  return data.content.find(c => c.type === 'text')?.text ?? ''
+  const data = await res.json() as { choices: { message: { content: string } }[] }
+  return data.choices[0]?.message?.content ?? ''
 }
 
 export async function generateDailySummary(
@@ -59,7 +58,7 @@ ${todayEntries.map(e => `- ${new Date(e.createdAt).toLocaleTimeString('zh-CN', {
 
 用中文回答，语言自然流畅，不超过400字。`
 
-  return callClaude(apiKey, prompt)
+  return callLLM(apiKey, prompt)
 }
 
 export async function generateWeeklyReport(
@@ -93,5 +92,5 @@ ${weekEntries.slice(-20).map(e => `- ${new Date(e.createdAt).toLocaleDateString(
 
 用中文回答，结构清晰，不超过600字。`
 
-  return callClaude(apiKey, prompt)
+  return callLLM(apiKey, prompt)
 }
