@@ -1,4 +1,4 @@
-import type { Task, JournalEntry } from './types'
+import type { Task, JournalEntry, Status } from './types'
 import { PRIORITY_META } from './constants'
 
 // DeepSeek 采用 OpenAI 兼容接口（chat/completions）。
@@ -25,119 +25,89 @@ async function callLLM(apiKey: string, prompt: string, maxTokens = 1500): Promis
   return data.choices[0]?.message?.content ?? ''
 }
 
+const pad = (n: number) => String(n).padStart(2, '0')
+const statusLabel = (s: Status) => (s === 'done' ? '完成' : s === 'in_progress' ? '进行中' : '待办')
+// 任务一行：标题（优先级，[分类]）[，截止YYYY-MM-DD]
+const taskLine = (t: Task, withCategory = true) =>
+  `${t.title}（${PRIORITY_META[t.priority].label}${withCategory ? `，${t.category}` : ''}）${t.deadline ? `，截止${t.deadline}` : ''}`
+
 export async function generateDailySummary(
   apiKey: string,
   tasks: Task[],
   journalEntries: JournalEntry[]
 ): Promise<string> {
   const now = new Date()
-  const todayStr = now.toLocaleDateString('zh-CN')
-  const todayKey = now.toDateString()
-  const startOfToday = new Date(now)
-  startOfToday.setHours(0, 0, 0, 0)
+  const todayLabel = now.toLocaleDateString('zh-CN')
+  const todayStr = now.toDateString()
+  const todayYmd = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
+  const isToday = (d: string) => new Date(d).toDateString() === todayStr
+  const taskTitle = new Map(tasks.map(t => [t.id, t.title]))
 
-  const taskById = new Map(tasks.map(t => [t.id, t]))
-  const statusLabel = (s: Task['status']) => s === 'done' ? '已完成' : s === 'in_progress' ? '进行中' : '待办'
+  // 今日任务数据 = 今日有动态（创建/更新/截止）∪ 当前所有待办，按 id 去重。
+  const seen = new Set<string>()
+  const todayTasks = tasks.filter(t => {
+    if (seen.has(t.id)) return false
+    const hit = isToday(t.createdAt) || isToday(t.updatedAt) || t.deadline === todayYmd || t.status === 'todo'
+    if (hit) seen.add(t.id)
+    return hit
+  })
+  const tasksSummary = todayTasks.length
+    ? todayTasks.map(t => `- [${statusLabel(t.status)}] ${taskLine(t)}`).join('\n')
+    : '无'
 
-  const fmtTask = (t: Task) => {
-    const m = PRIORITY_META[t.priority]
-    const dl = t.deadline ? `，截止 ${t.deadline}` : ''
-    const overdue = t.deadline && new Date(t.deadline) < startOfToday && t.status !== 'done' ? '（已逾期）' : ''
-    return `- ${t.title}｜${m.short} ${m.label}｜分类:${t.category}｜状态:${statusLabel(t.status)}${dl}${overdue}`
-  }
+  // 今日工作日志 = 今日条目（时间 + 内容 + 关联任务）。
+  const todayEntries = journalEntries.filter(e => isToday(e.createdAt))
+  const journalText = todayEntries.length
+    ? todayEntries.map(e => {
+        const time = new Date(e.createdAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+        const rel = e.taskId ? (taskTitle.get(e.taskId) ?? '已删除任务') : '无关联'
+        return `- ${time} ${e.content}（关联：${rel}）`
+      }).join('\n')
+    : '今日暂无日志记录'
 
-  // 今日相关任务：进行中/待办 + 今日完成的。
-  const activeTasks = tasks.filter(t => t.status !== 'done')
-  const doneToday = tasks.filter(t => t.status === 'done' && new Date(t.updatedAt).toDateString() === todayKey)
-  const todayTasks = [...activeTasks, ...doneToday]
+  // 当前所有进行中任务（不限日期）。
+  const inProgress = tasks.filter(t => t.status === 'in_progress')
+  const inProgressText = inProgress.length
+    ? inProgress.map(t => `- ${taskLine(t)}`).join('\n')
+    : '无'
 
-  // 按分类统计各状态数量，便于模型准确计算完成率。
-  const catStats = new Map<string, { total: number; done: number; doing: number; todo: number }>()
-  for (const t of tasks) {
-    const c = catStats.get(t.category) ?? { total: 0, done: 0, doing: 0, todo: 0 }
-    c.total++
-    if (t.status === 'done') c.done++
-    else if (t.status === 'in_progress') c.doing++
-    else c.todo++
-    catStats.set(t.category, c)
-  }
-  const catStatsText = [...catStats.entries()]
-    .map(([cat, s]) => `- ${cat}：完成 ${s.done}/${s.total}（进行中 ${s.doing}、待办 ${s.todo}）`)
-    .join('\n') || '- 暂无任务'
-
-  // 今日日志（附关联任务的分类/名称）。
-  const todayEntries = journalEntries.filter(e => new Date(e.createdAt).toDateString() === todayKey)
-  const fmtEntry = (e: JournalEntry) => {
-    const time = new Date(e.createdAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
-    const t = e.taskId ? taskById.get(e.taskId) : null
-    const rel = t ? `[${t.category}/${t.title}]` : '[无关联任务]'
-    return `- ${time} ${rel} ${e.content}`
-  }
-  const journalText = todayEntries.map(fmtEntry).join('\n') || '今日暂无日志记录'
-
-  // 各分类日志条目数（用于工作占比估算）。
-  const entryByCat = new Map<string, number>()
-  for (const e of todayEntries) {
-    const t = e.taskId ? taskById.get(e.taskId) : null
-    const c = t ? t.category : '未分类'
-    entryByCat.set(c, (entryByCat.get(c) ?? 0) + 1)
-  }
-  const entryByCatText = [...entryByCat.entries()]
-    .map(([cat, n]) => `- ${cat}：${n} 条`)
-    .join('\n') || '- 今日暂无日志'
-
-  // 昨日遗留：今天之前创建、至今仍未完成的任务。
-  const yesterdayPending = tasks.filter(t => t.status !== 'done' && new Date(t.createdAt) < startOfToday)
-  const yesterdayText = yesterdayPending.map(fmtTask).join('\n') || '无遗留任务'
-
-  const tasksSummary = `今日相关任务（${todayTasks.length} 个）：
-${todayTasks.map(fmtTask).join('\n') || '- 无'}
-
-按分类完成情况：
-${catStatsText}`
-
-  const journalSummary = `日志条目（${todayEntries.length} 条）：
-${journalText}
-
-各分类日志条目数：
-${entryByCatText}`
-
-  const prompt = `你是一个工作效率分析助手。请根据以下数据生成今日（${todayStr}）工作日报。
+  const prompt = `你是一个工作汇报助手。根据以下数据生成今日（${todayLabel}）工作日报。
 
 【今日任务数据】
 ${tasksSummary}
 
 【今日工作日志】
-${journalSummary}
+${journalText}
 
-【昨日遗留任务】
-${yesterdayText}
+【当前所有进行中任务】
+${inProgressText}
 
-请用中文输出，使用 Markdown 格式：每个章节标题用「## 」开头，正文用「- 」列表或短段落，关键信息用 **加粗**。严格按以下结构输出：
+生成要求：
+- 总字数控制在 200 字以内
+- 每条内容用动词开头（完成/修复/调研/输出/联调/推进/确认）
+- 技术细节后面加一句结论或影响
+- 区分事实（已发生）和判断（风险预判）
+- 语言简洁，上级能一眼看懂
 
-## 📊 今日概览
-- 任务完成率：按分类分别统计（例：工作 2/3、学习 1/1）
-- 各分类工作占比：根据日志条目数量估算
+请严格按以下格式输出，不要增减章节：
 
-## ✅ 今日完成
-按分类列出今日完成的任务，每项附简短说明（从日志中提取关键信息）
+## 今日完成
+- [动词] 具体事项，结果/影响是什么
+（如无完成项，写"暂无已完成任务"）
 
-## 🔄 进行中
-列出进行中的任务，结合日志说明当前进展与下一步
+## 进行中
+- [任务名] 当前进展，预计完成时间
+（如无，省略此章节）
 
-## ⚠️ 待办及风险
-- 重点标注逾期或今日未推进的 P0/P1 任务
-- 截止日期临近的任务预警
+## 明日计划
+- [P0/P1/P2] [动词] 具体可执行的任务
+（按优先级排列，最多列 3 条）
 
-## 💡 效率分析
-结合日志分析：今日工作节奏是否合理；是否存在任务切换过于频繁；P0/P1 重要紧急任务是否得到优先处理
+## 问题与阻塞
+- [阻塞事实] 需要谁协助或如何解决
+（如无阻塞，写"暂无"）`
 
-## 📋 明日建议
-根据今日进展，给出明日优先处理顺序的具体建议
-
-要求：分析须结合具体任务名、分类与日志内容，避免空泛套话；某章节确无数据时如实说明。`
-
-  return callLLM(apiKey, prompt, 2500)
+  return callLLM(apiKey, prompt)
 }
 
 export async function generateWeeklyReport(
@@ -147,29 +117,95 @@ export async function generateWeeklyReport(
 ): Promise<string> {
   const now = new Date()
   const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+  const rangeLabel = `${weekAgo.toLocaleDateString('zh-CN')} ~ ${now.toLocaleDateString('zh-CN')}`
 
+  // 本周任务集 = 近 7 天创建/更新的任务 ∪ 当前未完成任务。
+  const weekTasks = tasks.filter(t =>
+    new Date(t.createdAt) >= weekAgo || new Date(t.updatedAt) >= weekAgo || t.status !== 'done'
+  )
+
+  // 本周任务数据（按分类汇总）。
+  const byCategory = new Map<string, Task[]>()
+  for (const t of weekTasks) {
+    const arr = byCategory.get(t.category) ?? []
+    arr.push(t)
+    byCategory.set(t.category, arr)
+  }
+  const weeklyTasksSummary = byCategory.size
+    ? [...byCategory.entries()]
+        .map(([cat, list]) =>
+          `【${cat}】（${list.length}个）\n${list.map(t => `- [${statusLabel(t.status)}] ${taskLine(t, false)}`).join('\n')}`
+        )
+        .join('\n')
+    : '无'
+
+  // 本周工作日志摘要（按天汇总关键词）。
   const weekEntries = journalEntries.filter(e => new Date(e.createdAt) >= weekAgo)
-  const completedThisWeek = tasks.filter(t => t.status === 'done' && new Date(t.updatedAt) >= weekAgo)
+  const byDay = new Map<string, string[]>()
+  for (const e of weekEntries) {
+    const d = new Date(e.createdAt)
+    const key = `${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+    const arr = byDay.get(key) ?? []
+    arr.push(e.content)
+    byDay.set(key, arr)
+  }
+  const weeklyJournalSummary = byDay.size
+    ? [...byDay.entries()]
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .map(([day, contents]) => {
+          const joined = contents.join('；')
+          const text = joined.length > 120 ? `${joined.slice(0, 120)}…` : joined
+          return `- ${day}（${contents.length}条）：${text}`
+        })
+        .join('\n')
+    : '本周暂无日志记录'
 
-  const prompt = `你是一个工作助手。请根据以下信息生成本周工作周报（${weekAgo.toLocaleDateString('zh-CN')} ~ ${now.toLocaleDateString('zh-CN')}）。
+  const completedCount = weekTasks.filter(t => t.status === 'done').length
+  const inProgressCount = weekTasks.filter(t => t.status === 'in_progress').length
+  const pendingCount = weekTasks.filter(t => t.status === 'todo').length
 
-## 本周完成任务（${completedThisWeek.length}个）
-${completedThisWeek.map(t => `- ${t.title}（${t.category}，${PRIORITY_META[t.priority].label}）`).join('\n') || '无'}
+  const prompt = `你是一个工作汇报助手。根据以下数据生成本周（${rangeLabel}）工作周报。
 
-## 当前任务状态
-- 进行中：${tasks.filter(t => t.status === 'in_progress').length}个
-- 待办：${tasks.filter(t => t.status === 'todo').length}个
+【本周任务数据（按分类汇总）】
+${weeklyTasksSummary}
 
-## 本周日志摘要（${weekEntries.length}条）
-${weekEntries.slice(-20).map(e => `- ${new Date(e.createdAt).toLocaleDateString('zh-CN')}：${e.content}`).join('\n') || '本周暂无日志记录'}
+【本周工作日志摘要】
+${weeklyJournalSummary}
 
-请生成一份专业的周报，包含：
-1. 本周主要成果
-2. 工作亮点与挑战
-3. 时间分配分析
-4. 下周工作重点建议
+【本周完成率数据】
+完成：${completedCount}个，进行中：${inProgressCount}个，待办：${pendingCount}个
 
-用中文回答，结构清晰，不超过600字。`
+生成要求：
+- 总长度不超过一页（400字以内）
+- 本周完成要按模块/分类归类提炼，不是日报的简单拼接
+- 每条用动词开头
+- 问题与风险要分两层：已解决的问题 + 潜在风险（标注"⚠️风险"）
+- 量化指标要体现（完成率、关键里程碑进度）
+- 技术术语后加一句业务结论
+
+请严格按以下格式输出：
+
+## 本周完成（按模块归类）
+**[模块名]**
+- [动词] 具体事项及结果
+
+## 下周计划
+- [P0/P1/P2] [动词] 具体任务，预计完成时间
+
+## 问题与风险
+**已解决：**
+- [问题] → [解法]
+
+**⚠️ 潜在风险：**
+- [风险描述] → [应对措施]
+
+## 进度数据
+- 本周任务完成率：X%（完成X个/共X个）
+- 关键里程碑：[里程碑名] 完成 X%
+- [其他量化指标]
+
+## 学习沉淀（可选，有则写）
+- 踩坑/方法总结`
 
   return callLLM(apiKey, prompt)
 }

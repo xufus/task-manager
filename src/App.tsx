@@ -239,7 +239,7 @@ function MainApp({ username, onLogout }: { username: string; onLogout: () => voi
       )}
 
       {summary && (
-        <SummaryModal title={summary.title} content={summary.content} onClose={() => setSummary(null)} />
+        <SummaryModal title={summary.title} content={summary.content} time={summary.time} onClose={() => setSummary(null)} />
       )}
 
       {error && (
