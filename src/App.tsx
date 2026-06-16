@@ -244,7 +244,8 @@ function MainApp({ username, onLogout }: { username: string; onLogout: () => voi
 
       {error && (
         <div style={{
-          position: 'fixed', bottom: 16, right: 16, zIndex: 60,
+          position: 'fixed', top: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 9999,
+          width: 'auto', maxWidth: 400,
           background: 'rgba(255,68,68,0.15)', border: '1px solid rgba(255,68,68,0.3)',
           borderRadius: 6, padding: '10px 14px', fontSize: 13, color: '#ff4444',
           display: 'flex', alignItems: 'center', gap: 10,
