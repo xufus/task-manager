@@ -161,6 +161,13 @@ export default function Sidebar({ tasks, categories, onAddCategory, onDeleteCate
   const [filterCategory, setFilterCategory] = useState<string>('all')
   const [filterPriority, setFilterPriority] = useState<Priority | 'all'>('all')
   const [search, setSearch] = useState('')
+  // 已完成任务默认折叠；偏好记到 localStorage，刷新后保持（缺省值=折叠）。
+  const [completedCollapsed, setCompletedCollapsed] = useState<boolean>(() => {
+    try { return localStorage.getItem('sidebar.completedCollapsed') !== 'false' } catch { return true }
+  })
+  useEffect(() => {
+    try { localStorage.setItem('sidebar.completedCollapsed', String(completedCollapsed)) } catch { /* 忽略 */ }
+  }, [completedCollapsed])
 
   const filtered = tasks.filter(t => {
     if (filterStatus !== 'all' && t.status !== filterStatus) return false
@@ -169,6 +176,9 @@ export default function Sidebar({ tasks, categories, onAddCategory, onDeleteCate
     if (search && !t.title.toLowerCase().includes(search.toLowerCase())) return false
     return true
   })
+  // 上半部分=未完成（待办+进行中），下半部分=已完成（可折叠）。
+  const incompleteTasks = filtered.filter(t => t.status !== 'done')
+  const completedTasks = filtered.filter(t => t.status === 'done')
 
   const selStyle: React.CSSProperties = {
     width: '100%',
@@ -190,6 +200,64 @@ export default function Sidebar({ tasks, categories, onAddCategory, onDeleteCate
       <path d="M1 1L5 5L9 1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ stroke: 'var(--text-muted)' }} />
     </svg>
   )
+
+  const renderTask = (task: Task) => {
+    const isSelected = selectedId === task.id
+    return (
+      <div
+        key={task.id}
+        onClick={() => onSelect(task.id)}
+        style={{
+          position: 'relative',
+          padding: '5px 12px 4px 14px',
+          minHeight: 36, boxSizing: 'border-box',
+          cursor: 'pointer',
+          borderBottom: '1px solid rgba(var(--on),0.04)',
+          display: 'flex', alignItems: 'flex-start', gap: 8,
+          background: isSelected ? 'rgba(94,106,210,0.1)' : 'transparent',
+          transition: 'background 0.1s, opacity 0.1s',
+          opacity: task.status === 'done' ? 0.6 : 1,
+          borderLeft: `3px solid ${isSelected ? '#5e6ad2' : PRIORITY_META[task.priority].color}`,
+        }}
+        onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'rgba(var(--on),0.04)' }}
+        onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = 'transparent' }}
+      >
+        <div style={{ marginTop: 2, flexShrink: 0 }}>
+          <StatusIcon status={task.status} size={13} />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{
+            fontSize: 13, fontWeight: 500,
+            color: task.status === 'done' ? 'var(--text-faint)' : PRIORITY_TITLE_COLORS[task.priority],
+            textDecoration: task.status === 'done' ? 'line-through' : 'none',
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}>{task.title}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2 }}>
+            <PriorityIcon priority={task.priority} status={task.status} />
+            <span style={{ fontSize: 11, color: task.status === 'done' ? 'var(--text-faint)' : categoryStyle(task.category).text }}>{task.category}</span>
+            {task.deadline && (
+              <span style={{
+                fontSize: 11,
+                color: new Date(task.deadline) < new Date() && task.status !== 'done' ? '#ff4444' : 'var(--text-muted)',
+              }}>· {task.deadline}</span>
+            )}
+          </div>
+        </div>
+        <button
+          onClick={e => { e.stopPropagation(); onDelete(task.id) }}
+          style={{
+            background: 'none', border: 'none', color: 'var(--text-muted)',
+            cursor: 'pointer', padding: '0 2px', fontSize: 12, lineHeight: 1,
+            opacity: 0, transition: 'opacity 0.1s',
+            flexShrink: 0,
+          }}
+          className="sidebar-delete-btn"
+          onMouseEnter={e => { e.currentTarget.style.color = '#ff4444'; e.currentTarget.style.opacity = '1' }}
+          onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)' }}
+        >✕</button>
+      </div>
+    )
+  }
 
   return (
     <div style={{
@@ -274,63 +342,43 @@ export default function Sidebar({ tasks, categories, onAddCategory, onDeleteCate
         {filtered.length === 0 ? (
           <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: 12, padding: '24px 0' }}>暂无任务</div>
         ) : (
-          filtered.map(task => {
-            const isSelected = selectedId === task.id
-            return (
-              <div
-                key={task.id}
-                onClick={() => onSelect(task.id)}
-                style={{
-                  position: 'relative',
-                  padding: '5px 12px 4px 14px',
-                  minHeight: 36, boxSizing: 'border-box',
-                  cursor: 'pointer',
-                  borderBottom: '1px solid rgba(var(--on),0.04)',
-                  display: 'flex', alignItems: 'flex-start', gap: 8,
-                  background: isSelected ? 'rgba(94,106,210,0.1)' : 'transparent',
-                  transition: 'background 0.1s, opacity 0.1s',
-                  opacity: task.status === 'done' ? 0.6 : 1,
-                  borderLeft: `3px solid ${isSelected ? '#5e6ad2' : PRIORITY_META[task.priority].color}`,
-                }}
-                onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'rgba(var(--on),0.04)' }}
-                onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = 'transparent' }}
-              >
-                <div style={{ marginTop: 2, flexShrink: 0 }}>
-                  <StatusIcon status={task.status} size={13} />
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{
-                    fontSize: 13, fontWeight: 500,
-                    color: task.status === 'done' ? 'var(--text-faint)' : PRIORITY_TITLE_COLORS[task.priority],
-                    textDecoration: task.status === 'done' ? 'line-through' : 'none',
-                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                  }}>{task.title}</div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2 }}>
-                    <PriorityIcon priority={task.priority} status={task.status} />
-                    <span style={{ fontSize: 11, color: task.status === 'done' ? 'var(--text-faint)' : categoryStyle(task.category).text }}>{task.category}</span>
-                    {task.deadline && (
-                      <span style={{
-                        fontSize: 11,
-                        color: new Date(task.deadline) < new Date() && task.status !== 'done' ? '#ff4444' : 'var(--text-muted)',
-                      }}>· {task.deadline}</span>
-                    )}
-                  </div>
-                </div>
-                <button
-                  onClick={e => { e.stopPropagation(); onDelete(task.id) }}
+          <>
+            {/* 未完成任务 */}
+            {incompleteTasks.map(renderTask)}
+
+            {/* 已完成任务（可折叠）—— 仅在存在已完成任务时显示 */}
+            {completedTasks.length > 0 && (
+              <>
+                <div
+                  onClick={() => setCompletedCollapsed(c => !c)}
                   style={{
-                    background: 'none', border: 'none', color: 'var(--text-muted)',
-                    cursor: 'pointer', padding: '0 2px', fontSize: 12, lineHeight: 1,
-                    opacity: 0, transition: 'opacity 0.1s',
-                    flexShrink: 0,
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    padding: '6px 12px', cursor: 'pointer', userSelect: 'none',
+                    fontSize: 12, color: '#8a8a9a',
+                    transition: 'background 0.1s',
                   }}
-                  className="sidebar-delete-btn"
-                  onMouseEnter={e => { e.currentTarget.style.color = '#ff4444'; e.currentTarget.style.opacity = '1' }}
-                  onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)' }}
-                >✕</button>
-              </div>
-            )
-          })
+                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.03)')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                >
+                  <svg
+                    width="8" height="8" viewBox="0 0 10 10" fill="none"
+                    style={{ flexShrink: 0, transform: completedCollapsed ? 'rotate(0deg)' : 'rotate(90deg)', transition: 'transform 0.2s' }}
+                  >
+                    <path d="M3 1L7 5L3 9" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ stroke: '#8a8a9a' }} />
+                  </svg>
+                  已完成 ({completedTasks.length})
+                </div>
+                <div style={{
+                  // 折叠动画：估高 60px/行（大于实际行高，避免裁切；max-height 仅作上限不撑空白）。
+                  maxHeight: completedCollapsed ? 0 : completedTasks.length * 60,
+                  overflow: 'hidden',
+                  transition: 'max-height 0.2s ease',
+                }}>
+                  {completedTasks.map(renderTask)}
+                </div>
+              </>
+            )}
+          </>
         )}
       </div>
 
