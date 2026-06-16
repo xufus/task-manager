@@ -4,6 +4,7 @@ import { STATUSES } from '../constants'
 import TaskForm from './TaskForm'
 import StatusIcon from './StatusIcon'
 import PriorityTag from './PriorityTag'
+import SubtaskSection from './SubtaskSection'
 
 interface Props {
   task: Task | null
@@ -25,6 +26,9 @@ export default function TaskDetail({ task, categories, onUpdate, onDelete, onClo
   }
 
   const isOverdue = task.deadline && new Date(task.deadline) < new Date() && task.status !== 'done'
+
+  const subtasks = task.subtasks ?? []
+  const allSubtasksDone = subtasks.length > 0 && subtasks.every(s => s.done)
 
   const metaBlock: React.CSSProperties = {
     padding: '8px 10px', borderRadius: 6,
@@ -52,6 +56,27 @@ export default function TaskDetail({ task, categories, onUpdate, onDelete, onClo
   return (
     <div style={{ flex: 1, padding: 20, overflowY: 'auto' }}>
       <div style={{ maxWidth: 480 }}>
+        {/* 全部子任务完成提示条 */}
+        {allSubtasksDone && task.status !== 'done' && (
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+            padding: '10px 14px', borderRadius: 6, marginBottom: 16,
+            background: 'rgba(0,200,83,0.1)', border: '1px solid rgba(0,200,83,0.3)',
+          }}>
+            <span style={{ fontSize: 13, color: '#00c853' }}>✓ 所有子任务已完成，是否标记此任务为完成？</span>
+            <button
+              onClick={() => onUpdate(task.id, { status: 'done' })}
+              style={{
+                flexShrink: 0, padding: '4px 12px', borderRadius: 6, fontSize: 12, fontWeight: 500, cursor: 'pointer',
+                background: 'rgba(0,200,83,0.15)', border: '1px solid rgba(0,200,83,0.35)',
+                color: '#00c853', transition: 'filter 0.1s',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.filter = 'brightness(1.2)')}
+              onMouseLeave={e => (e.currentTarget.style.filter = 'none')}
+            >标记完成</button>
+          </div>
+        )}
+
         {/* Title row */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 9 }}>
@@ -126,6 +151,12 @@ export default function TaskDetail({ task, categories, onUpdate, onDelete, onClo
             </div>
           )}
         </div>
+
+        {/* 子任务 / 检查清单 */}
+        <SubtaskSection
+          subtasks={subtasks}
+          onChange={next => onUpdate(task.id, { subtasks: next })}
+        />
 
         {/* Action buttons */}
         <div style={{ display: 'flex', gap: 8 }}>

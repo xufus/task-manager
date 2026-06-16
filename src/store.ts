@@ -38,10 +38,14 @@ function useLocalStorage<T>(key: string, initial: T) {
   return [value, setValue] as const
 }
 
-// 兼容旧优先级（紧急/高/中/低 → P0–P3）。
-function normalizePriority(t: Task): Task {
+// 兼容旧数据：旧优先级（紧急/高/中/低 → P0–P3）；旧任务无 subtasks 字段时补空数组。
+function normalizeTask(t: Task): Task {
   const mapped = LEGACY_PRIORITY[t.priority as string]
-  return mapped ? { ...t, priority: mapped } : t
+  return {
+    ...t,
+    priority: mapped ?? t.priority,
+    subtasks: t.subtasks ?? [],
+  }
 }
 
 export function useAppStore() {
@@ -68,7 +72,7 @@ export function useAppStore() {
           listAll(C.categories),
         ])
         if (cancelled) return
-        setTasks((t as Task[]).map(normalizePriority).sort((a, b) => (a.order ?? 0) - (b.order ?? 0)))
+        setTasks((t as Task[]).map(normalizeTask).sort((a, b) => (a.order ?? 0) - (b.order ?? 0)))
         setJournalEntries((j as JournalEntry[]).sort((a, b) => a.createdAt.localeCompare(b.createdAt)))
         setDailySummaries((d as DailySummary[]).sort((a, b) => a.generatedAt.localeCompare(b.generatedAt)))
         setWeeklySummaries((w as WeeklySummary[]).sort((a, b) => a.generatedAt.localeCompare(b.generatedAt)))
@@ -93,7 +97,7 @@ export function useAppStore() {
   const addTask = useCallback((task: NewTask) => {
     const now = new Date().toISOString()
     const order = tasks.reduce((m, t) => Math.max(m, t.order ?? 0), 0) + 1
-    const full: Task = { ...task, id: crypto.randomUUID(), createdAt: now, updatedAt: now, order }
+    const full: Task = { ...task, id: crypto.randomUUID(), createdAt: now, updatedAt: now, order, subtasks: [] }
     setTasks(prev => [...prev, full])
     putDoc(C.tasks, full.id, full).catch(e => logSync('新增任务', e))
   }, [tasks])

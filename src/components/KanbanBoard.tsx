@@ -100,6 +100,19 @@ function TaskCard({ task, isExpanded: expanded, onUpdateTask, onDeleteTask, onEx
               {task.deadline && (
                 <span style={{ fontSize: 11, color: isOverdue ? '#ff4444' : 'var(--text-muted)' }}>{task.deadline}</span>
               )}
+              {task.subtasks && task.subtasks.length > 0 && (() => {
+                const done = task.subtasks.filter(s => s.done).length
+                const allDone = done === task.subtasks.length
+                const color = allDone ? '#00c853' : '#8a8a9a'
+                return (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 12, color, flexShrink: 0 }}>
+                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                      <path d="M2.5 6.3L4.8 8.6L9.5 3.4" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    {done}/{task.subtasks.length}
+                  </span>
+                )
+              })()}
             </div>
           )}
         </div>
