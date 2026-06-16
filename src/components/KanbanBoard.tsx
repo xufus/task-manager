@@ -25,6 +25,22 @@ const STATUS_NEXT_LABEL: Record<Status, string> = {
   todo: '开始', in_progress: '完成', done: '',
 }
 
+// 本地时区下，把 Date 格式化成 YYYY-MM-DD（与 <input type="date"> 存储格式一致）。
+function localDateStr(d: Date): string {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
+// 截止日期是否为「明天」：仅比较年月日；用 Date.setDate(+1) 计算，自动处理跨月/跨年。
+function isDueTomorrow(deadline: string | null): boolean {
+  if (!deadline) return false
+  const tomorrow = new Date()
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  return deadline.slice(0, 10) === localDateStr(tomorrow)
+}
+
 interface CardProps {
   task: Task
   isExpanded: boolean
@@ -43,6 +59,8 @@ function TaskCard({ task, isExpanded: expanded, onUpdateTask, onDeleteTask, onEx
   const next = STATUS_NEXT[task.status]
   const prev = STATUS_PREV[task.status]
   const isOverdue = task.deadline && new Date(task.deadline) < new Date() && task.status !== 'done'
+  // 截止日期提醒：未完成且明天到期。每次渲染重算，日期变化后自动失效。
+  const dueTomorrow = task.status !== 'done' && isDueTomorrow(task.deadline)
 
   const borderColor = expanded ? 'rgba(94,106,210,0.35)' : isHovered ? 'rgba(var(--on),0.15)' : 'rgba(var(--on),0.06)'
 
@@ -52,12 +70,14 @@ function TaskCard({ task, isExpanded: expanded, onUpdateTask, onDeleteTask, onEx
       style={{
         ...style,
         background: 'var(--bg-card)',
-        border: `1px solid ${borderColor}`,
+        // 明天到期时主边框转橙；borderLeft 仍单独保留优先级竖线，二者共存。
+        border: `1px solid ${dueTomorrow ? '#f5a623' : borderColor}`,
         borderLeft: `3px solid ${PRIORITY_META[task.priority].color}`,
         borderRadius: 6,
+        boxShadow: dueTomorrow ? '0 0 8px rgba(245,166,35,0.25)' : undefined,
         cursor: isDragging ? 'grabbing' : 'grab',
         userSelect: 'none',
-        transition: 'border-color 0.1s, opacity 0.15s',
+        transition: 'border-color 0.1s, box-shadow 0.15s, opacity 0.15s',
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -98,7 +118,10 @@ function TaskCard({ task, isExpanded: expanded, onUpdateTask, onDeleteTask, onEx
                 )
               })()}
               {task.deadline && (
-                <span style={{ fontSize: 11, color: isOverdue ? '#ff4444' : 'var(--text-muted)' }}>{task.deadline}</span>
+                <span style={{ fontSize: 11, color: dueTomorrow ? '#f5a623' : isOverdue ? '#ff4444' : 'var(--text-muted)' }}>{task.deadline}</span>
+              )}
+              {dueTomorrow && (
+                <span style={{ fontSize: 11, color: '#f5a623', background: 'rgba(245,166,35,0.15)', padding: '2px 6px', borderRadius: 4, flexShrink: 0 }}>⏰ 明天到期</span>
               )}
               {task.subtasks && task.subtasks.length > 0 && (() => {
                 const done = task.subtasks.filter(s => s.done).length
@@ -155,12 +178,12 @@ function TaskCard({ task, isExpanded: expanded, onUpdateTask, onDeleteTask, onEx
             {task.deadline && (
               <div style={{
                 padding: '6px 8px', borderRadius: 6, gridColumn: '1 / -1',
-                background: isOverdue ? 'rgba(255,68,68,0.08)' : 'rgba(var(--on),0.03)',
-                border: `1px solid ${isOverdue ? 'rgba(255,68,68,0.2)' : 'rgba(var(--on),0.06)'}`,
+                background: dueTomorrow ? 'rgba(245,166,35,0.1)' : isOverdue ? 'rgba(255,68,68,0.08)' : 'rgba(var(--on),0.03)',
+                border: `1px solid ${dueTomorrow ? 'rgba(245,166,35,0.3)' : isOverdue ? 'rgba(255,68,68,0.2)' : 'rgba(var(--on),0.06)'}`,
               }}>
                 <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 3 }}>截止日期</div>
-                <div style={{ fontSize: 12, fontWeight: 500, color: isOverdue ? '#ff4444' : 'var(--text)' }}>
-                  {task.deadline}{isOverdue ? ' · 已逾期' : ''}
+                <div style={{ fontSize: 12, fontWeight: 500, color: dueTomorrow ? '#f5a623' : isOverdue ? '#ff4444' : 'var(--text)' }}>
+                  {task.deadline}{dueTomorrow ? ' · 明天到期' : isOverdue ? ' · 已逾期' : ''}
                 </div>
               </div>
             )}
