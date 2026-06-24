@@ -15,26 +15,52 @@ export const db = app.database()
 export interface AuthUser {
   uid?: string
   username: string
+  email?: string
 }
 
 // SDK 不同接口返回的 user 形态略有差异，这里宽松取字段，避免类型耦合。
 function pickUsername(u: any): string {
-  return (u && (u.username || u.name || u.nickName)) || ''
+  return (u && (u.username || u.email || u.name || u.nickName)) || ''
 }
 
-/** 用户名+密码注册；注册成功通常会自动建立会话，否则补登一次。 */
-export async function register(username: string, password: string): Promise<AuthUser> {
-  const res = await auth.signUp({ username, password })
+/**
+ * 注册第 1 步：向邮箱发送验证码（本环境强制邮箱验证码，不能免）。
+ * 返回 verificationId（第 2 步要带上）与 isUser（邮箱是否已注册，用于提示去登录）。
+ */
+export async function sendEmailCode(email: string): Promise<{ verificationId: string; isUser: boolean }> {
+  const res: any = await auth.getVerification({ email })
+  const verificationId = res?.verification_id
+  if (!verificationId) throw new Error('验证码发送失败，请稍后重试')
+  return { verificationId, isUser: !!res?.is_user }
+}
+
+/**
+ * 注册第 2 步：校验验证码并以邮箱+密码注册。
+ * 成功后通常已建立会话，否则补登一次。
+ */
+export async function registerWithCode(
+  email: string,
+  password: string,
+  verificationId: string,
+  code: string,
+): Promise<AuthUser> {
+  const verifyRes: any = await auth.verify({ verification_id: verificationId, verification_code: code })
+  const verification_token = verifyRes?.verification_token
+  if (!verification_token) throw new Error('验证码校验失败')
+  const res = await auth.signUp({ email, password, verification_code: code, verification_token })
   if (res.error) throw new Error(res.error.message || '注册失败')
-  if (!res.data?.session) return login(username, password)
-  return { uid: (res.data?.user as any)?.id, username }
+  if (!res.data?.session) return login(email, password)
+  return { uid: (res.data?.user as any)?.id, username: email, email }
 }
 
-/** 用户名+密码登录。 */
-export async function login(username: string, password: string): Promise<AuthUser> {
-  const res = await auth.signInWithPassword({ username, password })
+/** 账号+密码登录：含 @ 视为邮箱，否则按用户名（兼容控制台手动建的用户名账号）。 */
+export async function login(account: string, password: string): Promise<AuthUser> {
+  const isEmail = account.includes('@')
+  const res = await auth.signInWithPassword(
+    isEmail ? { email: account, password } : { username: account, password },
+  )
   if (res.error) throw new Error(res.error.message || '登录失败')
-  return { uid: (res.data?.user as any)?.id, username }
+  return { uid: (res.data?.user as any)?.id, username: account, email: isEmail ? account : undefined }
 }
 
 /** 退出登录。 */
