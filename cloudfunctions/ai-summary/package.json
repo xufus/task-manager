@@ -1,7 +1,9 @@
 {
   "name": "ai-summary",
   "version": "1.0.0",
-  "description": "DeepSeek AI 日报/周报代理云函数（服务端持有密钥）",
+  "description": "DeepSeek AI 日报/周报代理云函数（服务端持有密钥 + 按用户每日限次）",
   "main": "index.js",
-  "dependencies": {}
+  "dependencies": {
+    "@cloudbase/node-sdk": "latest"
+  }
 }
