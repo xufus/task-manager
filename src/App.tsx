@@ -109,10 +109,9 @@ function MainApp({ username, onLogout }: { username: string; onLogout: () => voi
   }
 
   async function handleGenerateSummary() {
-    if (!store.settings.apiKey) { setError('请先在设置中填入 DeepSeek API Key'); return }
     setGenerating(true)
     try {
-      const content = await generateDailySummary(store.settings.apiKey, store.tasks, store.journalEntries)
+      const content = await generateDailySummary(store.tasks, store.journalEntries)
       const today = new Date().toLocaleDateString('zh-CN')
       store.addDailySummary({ date: today, content })
       setSummary({ title: `${today} 工作日报`, content, time: new Date().toLocaleString('zh-CN') })
@@ -121,10 +120,9 @@ function MainApp({ username, onLogout }: { username: string; onLogout: () => voi
   }
 
   async function handleGenerateWeekly() {
-    if (!store.settings.apiKey) { setError('请先在设置中填入 DeepSeek API Key'); return }
     setGenerating(true)
     try {
-      const content = await generateWeeklyReport(store.settings.apiKey, store.tasks, store.journalEntries)
+      const content = await generateWeeklyReport(store.tasks, store.journalEntries)
       const now = new Date()
       const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
       store.addWeeklySummary({ weekStart: weekAgo.toLocaleDateString('zh-CN'), weekEnd: now.toLocaleDateString('zh-CN'), content })
@@ -221,8 +219,6 @@ function MainApp({ username, onLogout }: { username: string; onLogout: () => voi
 
       {showSettings && (
         <SettingsPanel
-          settings={store.settings}
-          onUpdate={store.updateSettings}
           onClose={() => setShowSettings(false)}
           username={username}
           onLogout={onLogout}

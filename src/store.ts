@@ -20,7 +20,7 @@ function logSync(action: string, err: unknown) {
   console.error(`[云同步失败] ${action}:`, err)
 }
 
-// settings 仍存本地：theme 是单设备偏好，apiKey 是敏感密钥，都不入云。
+// settings 仍存本地：theme 是单设备偏好，不入云。
 function useLocalStorage<T>(key: string, initial: T) {
   const [value, setValue] = useState<T>(() => {
     try {
@@ -54,7 +54,7 @@ export function useAppStore() {
   const [dailySummaries, setDailySummaries] = useState<DailySummary[]>([])
   const [weeklySummaries, setWeeklySummaries] = useState<WeeklySummary[]>([])
   const [categoryDocs, setCategoryDocs] = useState<CategoryDoc[]>([])
-  const [settings, setSettings] = useLocalStorage<AppSettings>('settings', { apiKey: '', theme: 'system' })
+  const [settings, setSettings] = useLocalStorage<AppSettings>('settings', { theme: 'system' })
   const [loading, setLoading] = useState(true)
 
   const categories = categoryDocs.map(c => c.name)

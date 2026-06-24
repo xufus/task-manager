@@ -49,6 +49,5 @@ export interface WeeklySummary {
 }
 
 export interface AppSettings {
-  apiKey: string
   theme: 'light' | 'dark' | 'system'
 }

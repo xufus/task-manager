@@ -1,0 +1,7 @@
+{
+  "name": "ai-summary",
+  "version": "1.0.0",
+  "description": "DeepSeek AI 日报/周报代理云函数（服务端持有密钥）",
+  "main": "index.js",
+  "dependencies": {}
+}

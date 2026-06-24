@@ -1,0 +1,15 @@
+{
+  "version": "2.0",
+  "envId": "task-manager-d0ghsia6r18225d3b",
+  "functionRoot": "cloudfunctions",
+  "functions": [
+    {
+      "name": "ai-summary",
+      "timeout": 60,
+      "runtime": "Nodejs16.13",
+      "handler": "index.main",
+      "memorySize": 256,
+      "installDependency": false
+    }
+  ]
+}

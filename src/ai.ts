@@ -1,28 +1,14 @@
 import type { Task, JournalEntry, Status } from './types'
 import { PRIORITY_META } from './constants'
+import { app } from './cloudbase'
 
-// DeepSeek 采用 OpenAI 兼容接口（chat/completions）。
-async function callLLM(apiKey: string, prompt: string, maxTokens = 1500): Promise<string> {
-  const res = await fetch('https://api.deepseek.com/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: 'deepseek-chat',
-      max_tokens: maxTokens,
-      messages: [{ role: 'user', content: prompt }],
-    }),
-  })
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}))
-    throw new Error((err as { error?: { message?: string } }).error?.message ?? `HTTP ${res.status}`)
-  }
-
-  const data = await res.json() as { choices: { message: { content: string } }[] }
-  return data.choices[0]?.message?.content ?? ''
+// AI 调用走 CloudBase 云函数 ai-summary：DeepSeek 密钥存在云函数环境变量里，
+// 前端不接触密钥，所有登录用户共用（无需各自填 key）。
+async function callLLM(prompt: string, maxTokens = 1500): Promise<string> {
+  const res = await app.callFunction({ name: 'ai-summary', data: { prompt, maxTokens } })
+  const result = (res?.result ?? {}) as { content?: string; error?: string }
+  if (result.error) throw new Error(result.error)
+  return result.content ?? ''
 }
 
 const pad = (n: number) => String(n).padStart(2, '0')
@@ -32,7 +18,6 @@ const taskLine = (t: Task, withCategory = true) =>
   `${t.title}（${PRIORITY_META[t.priority].label}${withCategory ? `，${t.category}` : ''}）${t.deadline ? `，截止${t.deadline}` : ''}`
 
 export async function generateDailySummary(
-  apiKey: string,
   tasks: Task[],
   journalEntries: JournalEntry[]
 ): Promise<string> {
@@ -107,11 +92,10 @@ ${inProgressText}
 - [阻塞事实] 需要谁协助或如何解决
 （如无阻塞，写"暂无"）`
 
-  return callLLM(apiKey, prompt)
+  return callLLM(prompt)
 }
 
 export async function generateWeeklyReport(
-  apiKey: string,
   tasks: Task[],
   journalEntries: JournalEntry[]
 ): Promise<string> {
@@ -207,5 +191,5 @@ ${weeklyJournalSummary}
 ## 学习沉淀（可选，有则写）
 - 踩坑/方法总结`
 
-  return callLLM(apiKey, prompt)
+  return callLLM(prompt)
 }

@@ -1,24 +1,10 @@
-import { useState } from 'react'
-import type { AppSettings } from '../types'
-
 interface Props {
-  settings: AppSettings
-  onUpdate: (updates: Partial<AppSettings>) => void
   onClose: () => void
   username?: string
   onLogout?: () => void
 }
 
-export default function SettingsPanel({ settings, onUpdate, onClose, username, onLogout }: Props) {
-  const [apiKey, setApiKey] = useState(settings.apiKey)
-  const [showKey, setShowKey] = useState(false)
-
-  const inputStyle: React.CSSProperties = {
-    flex: 1, padding: '6px 10px', borderRadius: 6, fontSize: 13,
-    background: 'rgba(var(--on),0.04)',
-    border: '1px solid rgba(var(--on),0.1)',
-    color: 'var(--text)', boxSizing: 'border-box',
-  }
+export default function SettingsPanel({ onClose, username, onLogout }: Props) {
   const label: React.CSSProperties = {
     fontSize: 10, fontWeight: 500, color: 'var(--text-muted)',
     textTransform: 'uppercase', letterSpacing: '0.06em',
@@ -45,25 +31,10 @@ export default function SettingsPanel({ settings, onUpdate, onClose, username, o
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
-            <label style={label}>DeepSeek API Key</label>
-            <div style={{ display: 'flex', gap: 6 }}>
-              <input
-                type={showKey ? 'text' : 'password'}
-                value={apiKey}
-                onChange={e => setApiKey(e.target.value)}
-                placeholder="sk-..."
-                style={inputStyle}
-              />
-              <button
-                onClick={() => setShowKey(!showKey)}
-                style={{
-                  padding: '6px 10px', borderRadius: 6, fontSize: 11, cursor: 'pointer',
-                  background: 'rgba(var(--on),0.05)', border: '1px solid rgba(var(--on),0.1)',
-                  color: 'var(--text-muted)', whiteSpace: 'nowrap',
-                }}
-              >{showKey ? '隐藏' : '显示'}</button>
-            </div>
-            <p style={{ margin: '6px 0 0', fontSize: 11, color: 'var(--text-muted)' }}>用于 AI 日报和周报功能，仅保存在本地浏览器</p>
+            <label style={label}>AI 日报/周报</label>
+            <p style={{ margin: 0, fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.6 }}>
+              已接入云端 AI 服务，无需配置密钥，直接在顶部点「生成日报 / 周报」即可。
+            </p>
           </div>
 
           {onLogout && (
@@ -85,17 +56,7 @@ export default function SettingsPanel({ settings, onUpdate, onClose, username, o
           )}
         </div>
 
-        <div style={{ display: 'flex', gap: 8, marginTop: 20 }}>
-          <button
-            onClick={() => { onUpdate({ apiKey }); onClose() }}
-            style={{
-              flex: 1, padding: '7px 0', borderRadius: 6, fontSize: 13, fontWeight: 500,
-              background: '#5e6ad2', color: '#fff', border: 'none', cursor: 'pointer',
-              transition: 'filter 0.1s',
-            }}
-            onMouseEnter={e => (e.currentTarget.style.filter = 'brightness(1.15)')}
-            onMouseLeave={e => (e.currentTarget.style.filter = 'none')}
-          >保存</button>
+        <div style={{ display: 'flex', marginTop: 20 }}>
           <button
             onClick={onClose}
             style={{
@@ -105,7 +66,7 @@ export default function SettingsPanel({ settings, onUpdate, onClose, username, o
             }}
             onMouseEnter={e => (e.currentTarget.style.filter = 'brightness(1.2)')}
             onMouseLeave={e => (e.currentTarget.style.filter = 'none')}
-          >取消</button>
+          >关闭</button>
         </div>
       </div>
     </div>
